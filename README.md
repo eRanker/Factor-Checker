@@ -1,7 +1,8 @@
 # eRanker Factor Checker Website
-A simple website that creates a dedicated page for check indivudual facotrs based on [eRanker.com](https://www.eRanker.com)  API.
+A simple website that creates a dedicated page for check indivudual factors based on [eRanker.com](https://www.eRanker.com)  API.
+You can install on any folder of your website and do the redirects using a .htaccess file.
 
-> Note: You will need a eRanker.com API Key in order to run the projet in your server. You can modify this code the way you want, adding a logo, pdf headers and urls.
+> You will need a eRanker.com API Key in order to run the projet in your server. You can modify this code the way you want, adding a logo, pdf headers and urls.
 
 ## If you want to develop, you can use the virtual host below as example:
 ```
