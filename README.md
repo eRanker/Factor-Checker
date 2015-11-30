@@ -2,6 +2,7 @@
 A simple website that creates a dedicated page for check indivudual facotrs based on eRanker.com API.
 
 ## If you want to develop, you can use the virtual host below as example:
+```
 <VirtualHost 127.0.0.1>
     DocumentRoot "D:\GEORANKER\factor-checker-website"
     ServerName 127.0.0.1
@@ -14,3 +15,4 @@ A simple website that creates a dedicated page for check indivudual facotrs base
             Require all granted
     </Directory>
 </VirtualHost>
+```
