@@ -1,4 +1,4 @@
-# Factor-Checker
+# eRanker Factor Checker Website
 A simple website that creates a dedicated page for check indivudual facotrs based on [eRanker.com](https://www.eRanker.com)  API.
 
 ## If you want to develop, you can use the virtual host below as example:
