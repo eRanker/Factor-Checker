@@ -1,5 +1,5 @@
 # Factor-Checker
-A simple website that creates a dedicated page for check indivudual facotrs based on eRanker.com API.
+A simple website that creates a dedicated page for check indivudual facotrs based on [eRanker.com](https://www.eRanker.com)  API.
 
 ## If you want to develop, you can use the virtual host below as example:
 ```
