@@ -9,18 +9,18 @@
         <title><?PHP echo $page_desc . " - " . $project_name ?></title>
 
         <!-- Theme CSS -->
-        <link href="/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="/bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
         <!-- Project Base CSS -->
         <link href='http://fonts.googleapis.com/css?family=Permanent+Marker' rel='stylesheet' type='text/css'>
         <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,400italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
 
         <!-- Report Page CSS -->
-        <link href="/css/base.css" rel="stylesheet">
-        <link href="/css/report.css" rel="stylesheet">
+        <link href="css/base.css" rel="stylesheet">
+        <link href="css/report.css" rel="stylesheet">
         <?php if (isset($_GET['pdf']) && !empty($_GET['pdf'])) { ?>
-            <link href="/css/reportpdf.css" rel="stylesheet">
+            <link href="css/reportpdf.css" rel="stylesheet">
         <?php } ?>
 
         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -66,7 +66,7 @@
 
                                     </header>
                                     <div class="block">
-                                        Factor description
+                                        Factor descriptionaaaaa
                                     </div>
                                 </div>
                             </div>

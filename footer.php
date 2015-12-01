@@ -11,19 +11,15 @@
             <nav id="footermenu">
                 <ul>
                     <li><a href="/" title="API Overview and Developer's Guide">Overview</a></li>
-                    <li><a href="/functions" title="General information about using our API">Functions</a></li>
-                    <li><a href="/support" title="API Support">Support</a></li>
+                    <li><a href="index.php?p=functions" title="General information about using our API">Functions</a></li>
+                    <li><a href="support" title="API Support">Support</a></li>
                     <li class="lastitem"><a href="https://www.georanker.com/contactus" target="_blank" title="Contact GeoRanker Support">Contact</a></li>
                 </ul>
             </nav>
         </div>
     </div>
 </footer>
-
-
-
 </div> <!-- /#wrapper -->
-
 
 <?PHP
 if ($seocheck_error) {
@@ -48,23 +44,22 @@ if ($seocheck_error) {
 }
 ?> 
 
-
 <!-- Theme JavaScript -->
-<script src="/bower_components/jquery/dist/jquery.min.js"></script>
-<script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-<script src="/js/highstock/js/highstock.js"></script>
-<script src="/js/highstock/js/modules/exporting.js"></script>
-<script src="/js/vendor/d3.min.js"></script>
-<script src="/js/vendor/circles.min.js"></script>
+<script src="bower_components/jquery/dist/jquery.min.js"></script>
+<script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="js/highstock/js/highstock.js"></script>
+<script src="js/highstock/js/modules/exporting.js"></script>
+<script src="js/vendor/d3.min.js"></script>
+<script src="js/vendor/circles.min.js"></script>
 <script src="//maps.google.com/maps/api/js?sensor=true"></script>
-<script src="/js/gmap/gmap.js"></script>
-<script src="/js/jquery-print/jQuery.print.js"></script>
+<script src="js/gmap/gmap.js"></script>
+<script src="js/jquery-print/jQuery.print.js"></script>
 
 <!-- Project Base JS -->
-<script src="/js/base.js"></script>
+<script src="js/base.js"></script>
 
 <!-- Report Page JS -->
-<script src="/js/report.js"></script>
+<script src="js/report.js"></script>
 
 </body>
 </html>

@@ -16,9 +16,15 @@ class eRankerCommons {
     const BIG = "BIG";
     const BASE_ER = "fad6kh9uo3xltjn48erw5qc20gm7szbi1vpy";
     const BASE_10 = "0123456789";
-
-    public static $imgfolder = "https://www.eranker.com/content/themes/eranker/img/";
-    public static $factorCreateImageFolder = "https://www.eranker.com/content/themes/eranker/libs/";
+    
+    public static $imgfolder = "/content/themes/eranker/img/";
+    public static $factorCreateImageFolder = "/content/themes/eranker/libs/";
+    public static $folderLibs = "/content/themes/eranker/libs/";
+    public static $urlLeadGenerator = "/content/themes/eranker/libs/leadgenerator.php";
+    public static $useleadgenerator = FALSE;
+    public static $layoutLeadGenerator = "POPUP";
+    public static $howshowthemodal = "report20";
+    public static $agent = array('image' => '/content/themes/eranker/img/lead-generator-pop-up-user-default-man-bg.png', 'text' => 'Fill in the data to get the full report', 'name' => 'eRanker Support', 'position' => '', 'logo' => '/content/themes/eranker/img/logo-blue.png', 'referer' => '', 'text_button' => 'Unlock Report Data');
 
     /**
      * Decode a report id from eranker base
@@ -26,6 +32,25 @@ class eRankerCommons {
      */
     public static function decodeReportId($id) {
         return self::convBase($id, self::BASE_10, self::BASE_10); //disabled for now...
+    }
+
+    /**
+     * translate the text on eranker
+     * @param string $key The text
+     */
+    public static function translate($key, $factor = null, $default = null) {
+        $arrayF = (array) $factor;
+
+        if (empty($arrayF) || !isset($arrayF['text']) || empty($arrayF['text'])) {
+            return ($default !== null) ? $default : $key;
+        } else {
+            $arrayT = (array) $arrayF['text'];
+
+            if (isset($arrayT[$key])) {
+                return $arrayT[$key];
+            }
+        }
+        return ($default !== null) ? $default : $key;
     }
 
     /**
@@ -59,7 +84,11 @@ class eRankerCommons {
             }
             return $out;
         } else {
-            return sprintf($string, $data);
+            try{
+                return @sprintf($string, $data);
+            } catch (Exception $ex) {
+                return "XXX";
+            }
         }
     }
 
@@ -74,25 +103,25 @@ class eRankerCommons {
         $out = array();
         switch ($status) {
             case self::RED:
-                $out['model'] = self::replaceValue($data, $fullFactor->model_red);
-                $out['description'] = self::replaceValue($data, $fullFactor->description_red);
+                $out['model'] = self::replaceValue($data, self::translate("model_red", $fullFactor));
+                $out['description'] = self::replaceValue($data, self::translate("description_red", $fullFactor));
                 break;
             case self::ORANGE:
-                $out['model'] = self::replaceValue($data, $fullFactor->model_orange);
-                $out['description'] = self::replaceValue($data, $fullFactor->description_orange);
+                $out['model'] = self::replaceValue($data, self::translate("model_orange", $fullFactor));
+                $out['description'] = self::replaceValue($data, self::translate("description_orange", $fullFactor));
                 break;
             case self::GREEN:
-                $out['model'] = self::replaceValue($data, $fullFactor->model_green);
-                $out['description'] = self::replaceValue($data, $fullFactor->description_green);
+                $out['model'] = self::replaceValue($data, self::translate("model_green", $fullFactor));
+                $out['description'] = self::replaceValue($data, self::translate("description_green", $fullFactor));
                 break;
             case self::NEUTRAL:
-                $out['model'] = self::replaceValue($data, $fullFactor->model_neutral);
-                $out['description'] = self::replaceValue($data, $fullFactor->description_neutral);
+                $out['model'] = self::replaceValue($data, self::translate("model_neutral", $fullFactor));
+                $out['description'] = self::replaceValue($data, self::translate("description_neutral", $fullFactor));
                 break;
             case self::MISSING;
             default;
-                $out['model'] = self::replaceValue($data, $fullFactor->model_missing);
-                $out['description'] = self::replaceValue($data, $fullFactor->description_missing);
+                $out['model'] = self::replaceValue($data, self::translate("model_missing", $fullFactor));
+                $out['description'] = self::replaceValue($data, self::translate("description_missing", $fullFactor));
         }
 
 
@@ -372,7 +401,7 @@ class eRankerCommons {
                 $out[$factor->id]['data'] = isset($reportData[$factor->id]) ? $reportData[$factor->id] : NULL;
                 $out[$factor->id]['model'] = array();
                 //$out[$factor->id]['model']['name'] = isset($factor->id) ? $factor->id : NULL;
-                $out[$factor->id]['model']['friendly_name'] = isset($factor->friendly_name) ? $factor->friendly_name : NULL;
+                $out[$factor->id]['model']['friendly_name'] = isset($factor->text["friendly_name"]) ? $factor->text["friendly_name"] : NULL;
                 $out[$factor->id]['model']['type'] = isset($factor->type) ? $factor->type : NULL;
                 $out[$factor->id]['model']['status'] = $statusCode;
                 $out[$factor->id]['model']['model'] = $status['model'];
@@ -453,7 +482,6 @@ class eRankerCommons {
         $tmpitem = array();
         if ($factor->is_active) {
             $tmpitem['id'] = $factor->id;
-            $tmpitem['friendly_name'] = $factor->friendly_name;
             $tmpitem['order'] = $factor->order;
             $tmpitem['type'] = $factor->type;
             $tmpitem['gui_type'] = $factor->gui_type;
@@ -461,22 +489,28 @@ class eRankerCommons {
             $tmpitem['limit_orange'] = $factor->limit_orange;
             $tmpitem['limit_green'] = $factor->limit_green;
             $tmpitem['limit_neutral'] = $factor->limit_neutral;
-            $tmpitem['model_red'] = $factor->model_red;
-            $tmpitem['model_orange'] = $factor->model_orange;
-            $tmpitem['model_green'] = $factor->model_green;
-            $tmpitem['model_neutral'] = $factor->model_neutral;
-            $tmpitem['model_missing'] = $factor->model_missing;
-            $tmpitem['description_red'] = $factor->description_red;
-            $tmpitem['description_orange'] = $factor->description_orange;
-            $tmpitem['description_green'] = $factor->description_green;
-            $tmpitem['description_neutral'] = $factor->description_neutral;
-            $tmpitem['description_missing'] = $factor->description_missing;
+
+            //Compatibility only
+            $tmpitem['friendly_name'] = self::translate("friendly_name", $factor, "");
+            $tmpitem['model_red'] = self::translate("model_red", $factor, "");
+            $tmpitem['model_orange'] = self::translate("model_orange", $factor, "");
+            $tmpitem['model_green'] = self::translate("model_green", $factor, "");
+            $tmpitem['model_neutral'] = self::translate("model_neutral", $factor, "");
+            $tmpitem['model_missing'] = self::translate("model_missing", $factor, "");
+            $tmpitem['description_red'] = self::translate("description_red", $factor, "");
+            $tmpitem['description_orange'] = self::translate("description_orange", $factor, "");
+            $tmpitem['description_green'] = self::translate("description_green", $factor, "");
+            $tmpitem['description_neutral'] = self::translate("description_neutral", $factor, "");
+            $tmpitem['description_missing'] = self::translate("description_missing", $factor, "");
+            $tmpitem['article'] = self::translate("article", $factor, "");
+            $tmpitem['solution'] = self::translate("solution", $factor, "");
+            //End of compatibility functions
+
             $tmpitem['correlation'] = $factor->correlation;
             $tmpitem['path'] = $factor->path;
             $tmpitem['pro_only'] = isset($factor->pro_only) && !empty($factor->pro_only) ? TRUE : FALSE;
             $tmpitem['free'] = isset($factor->free) && !empty($factor->free) ? TRUE : FALSE;
-            $tmpitem['article'] = $factor->article;
-            $tmpitem['solution'] = $factor->solution;
+
             $tmpitem['difficulty_level'] = $factor->difficulty_level;
             $tmpitem['category_id'] = $factor->category_id;
             $tmpitem['category_order'] = $factor->category_order;
@@ -489,6 +523,7 @@ class eRankerCommons {
             $tmpitem['group_friendly_name'] = isset($factor->group_friendly_name) ? $factor->group_friendly_name : NULL;
             $tmpitem['group_description'] = isset($factor->group_description) ? $factor->group_description : NULL;
             $tmpitem['group_order'] = $factor->group_order;
+            $tmpitem['text'] = $factor->text;
         }
         return $tmpitem;
     }
@@ -560,7 +595,8 @@ class eRankerCommons {
      * @param String $url The original url to be fixed
      * @return boolean|string The fixed URL. False if the url is invalid
      */
-    public static function fixURL($url) {
+    public static function fixURL($url) {       
+        
         if (strpos($url, "//") === 0) {
             $url = "http:" . $url;
         } else {
@@ -796,6 +832,7 @@ class eRankerCommons {
                 "bg_color" => $factor['category_bg_color'],
                 "icon" => $factor['category_icon']
             );
+            
             $groups[$factor['group_id']] = array(
                 "friendly_name" => $factor['group_friendly_name'],
                 "description" => $factor['group_description'],
@@ -813,7 +850,7 @@ class eRankerCommons {
                     $out .= '<div class="ercategory" data-category_id="' . $category_id . '" >';
                     $out .= '<div class="ercategoryheadline">';
                     if ($show_category) {
-                        $out .= '<h2 onclick="$(\'.ercategorydescription[data-category_id=' . $category_id . ']\').slideToggle();" class="ercategoryname" style="border-color: #' . $categories[$category_id]['bg_color'] . '">';
+                        $out .= '<h2 onclick="jQuery(\'.ercategorydescription[data-category_id=' . $category_id . ']\').slideToggle();" class="ercategoryname" style="border-color: #' . $categories[$category_id]['bg_color'] . '">';
                         $out .= '<img src="' . $categories[$category_id]['icon'] . '" class="ercategoryicon" alt="{icon}" /> ';
                         $out .= $categories[$category_id]['friendly_name'];
                         $out .= '</h2>';
@@ -821,36 +858,162 @@ class eRankerCommons {
 
 
                     $out .= '<div class="ercategoryprogressbar"></div>';
-                    $out .= '</div>';
-                    $out .= '<div class="ercategorydescription" data-category_id="' . $category_id . '" style="display:none">' . $categories[$category_id]['description'] . '</div>';
+                    $out .= '</div><!-- .ercategoryheadline -->';
+                    $out .= '<div class="ercategorydescription" data-category_id="' . $category_id . '" style="display:block">' . $categories[$category_id]['description'] . '</div>';
 
                     $is_odd_row = true;
                     foreach ($category_array as $group_id => $group_array) {
                         if (!empty($group_array)) {
                             $out .= "\r\n";
-                            $out .= '<div class="ergroup row" data-group_id="' . $group_id . '" >';
+                            $out .= '<div class="ergroup row ' . ($show_title ? 'append-title-margin' : '') . '" data-group_id="' . $group_id . '" >';
+                            $title = null;
                             if ($show_title) {
-                                $out .= '<h3 class="ergroupname ' . (($is_odd_row) ? 'eroddrow' : '') . '">' . $groups[$group_id]['friendly_name'] . '</h3>';
+                                $title = '<h3 class="ergroupname ' . (($is_odd_row) ? 'eroddrow' : '') . '">' . $groups[$group_id]['friendly_name'] . '</h3>';
                             }
                             $is_even = false;
                             foreach ($group_array as $factor_id) {
-                                $out .= self::getFactorHTML($report, $fullfactors[$factor_id], $reportScores[$factor_id], $is_even, $logged_in, $show_header, $show_title, $show_category);
+                                $out .= self::getFactorHTML($report, $fullfactors[$factor_id], $reportScores[$factor_id], $is_even, $logged_in, $show_header, 
+                                        $show_title, $show_category, $title);
                                 $is_even = !$is_even;
+                                $title = null;
                             }
-                            $out .= "</div>\r\n";
+                            $out .= "</div><!-- .ergroup -->\r\n";
                         }
                     }
 
-                    $out .= "</div>\r\n";
+                    $out .= "</div><!-- .ercategory -->\r\n";
                 }
             }
         }
 
         //DEBUG!
         //$out .= "<pre>ORDERED FACTOR TREE: " . print_r($factorTree, true) . "</pre>";
+        if ((!isset($_COOKIE['leadgenerated']) || empty($_COOKIE['leadgenerated'])) && self::$useleadgenerator !== FALSE && strcasecmp(self::$layoutLeadGenerator, 'POPUP') !== 0) {
 
-        $out .= "</div>";
-        $out .= "</div>";
+
+            $out .= '<div class="row" id="leadGeneratorFooter">';
+            $out .= '<div class="row" id="msgleadgenerator">';
+            $out .= '</div>';
+            $out .= '<div class="row">';
+            $out .= '<div class="col-md-3" style="margin-top: 40px;">';
+            $out .= '<div class="toprrightimgemptymodalFooter">';
+            $out .= '<div class="toprrightimgmodalFooter"></div>';
+            $out .= '</div>';
+            if (!empty(self::$agent['logo']) || !empty(self::$agent['name']) || !empty(self::$agent['position'])) {
+                $out .= '<div style="">';
+                $out .= '<div style="text-align: center; font-size: 16px;">' . self::$agent['name'] . ' <br />' . self::$agent['position'] . '<br /><img src="' . self::$agent['logo'] . '" style="max-height: 50px; max-width: 175px;" /> </div>';
+                $out .= '</div>';
+            }
+            $out .= '</div>';
+            $out .= '<div class="col-md-9">';
+            $out .= '<form id="formLeadGenerator" method="post" action="' . self::$folderLibs . 'leadgenerator.php">';
+            $out .= '<div class="">';
+            if (!empty(self::$agent['text'])) {
+                $out .= ' <h5>' . self::$agent['text'] . ' </h5>';
+            }
+            $out .= '<div class="form-group">';
+            $out .= '<label for="name_leadgenerator">Full Name</label>';
+            $out .= '<input id="name_leadgenerator" type="text" class="form-control" name="name_leadgenerator" placeholder="Full Name">';
+            $out .= '</div>';
+            $out .= '<div class="form-group">';
+            $out .= '<label for="companyname_leadgenerator">Company Name</label>';
+            $out .= '<input id="companyname_leadgenerator" type="text" class="form-control" name="companyname_leadgenerator" placeholder="Company Name">';
+            $out .= '</div>';
+            $out .= '<div class="form-group">';
+            $out .= '<label for="email_leadgenerator">Email</label>';
+            $out .= '<input id="email_leadgenerator" type="text" class="form-control" name="email_leadgenerator" placeholder="E-Mail Address">';
+            $out .= '</div>';
+            $out .= '<div class="form-group">';
+            $out .= '<label for="phone_leadgenerator">Phone</label>';
+            $out .= '<input id="phone_leadgenerator" type="text" class="form-control" name="phone_leadgenerator" placeholder="Phone Number">';
+            $out .= '<input type="hidden" name="reporturl" value="' . (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? "https" : "http") . "://" . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"] . '">';
+            $out .= '</div>';
+            $out .= ' <button id="saveleadgenerator" type="submit" class="btn btn-primary" style="width: 100%;">' . self::$agent['text_button'] . '</button>';
+            $out .= ' </div>';
+
+            $out .= '</form>';
+            $out .= '</div>';
+            $out .= '</div>';
+            $out .= '</div>';
+
+            $out .= '<style>';
+            if (!empty(self::$agent['image'])) {
+                $out .= '#leadGeneratorFooter .toprrightimgmodalFooter { background: transparent url("' . self::$agent['image'] . '") center no-repeat; height: 160px; border-radius: 150px; width: 160px;}';
+                $out .= '#leadGeneratorFooter .toprrightimgemptymodalFooter { background: transparent url("' . self::$imgfolder . 'lead-generator-pop-up-user-bg.png") center no-repeat; height: 160px; margin-right: auto; width: 160px; margin-left: auto;}';
+            } else {
+                $out .= '#leadGeneratorFooter .toprrightimgmodalFooter { background: transparent url("' . self::$imgfolder . 'lead-generator-pop-up-user-default-man-bg.png") center no-repeat; height: 160px; border-radius: 150px; width: 160px;}';
+            }
+
+            $out .= '</style>';
+            $out .= '<script>jQuery(document).ready(function () {urlLeadGenerate = "' . self::$urlLeadGenerator . '";});</script>';
+        }
+
+        $out .= "</div><!-- #erreport -->";
+        $out .= "</div><!-- .superreport-seo -->";
+        if ((!isset($_COOKIE['leadgenerated']) || empty($_COOKIE['leadgenerated'])) && self::$useleadgenerator !== FALSE && strcasecmp(self::$layoutLeadGenerator, 'POPUP') === 0) {
+            $out .= '<div id="howshowthemodal" data-howshowthemodal="' . self::$howshowthemodal . '"></div>';
+            $out .= '<div class="modal fade" id="leadGenerator" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog">';
+            $out .= '<div class="modal-dialog" role="document" style="padding: 0px !important; width: 512px !important; top:190px;  !important;">';
+            $out .= '<form id="formLeadGenerator" method="post" action="' . self::$folderLibs . 'leadgenerator.php">';
+            $out .= '<div class="modal-content">';
+            $out .= '<div class="modal-body" style="height: 250px; padding-right: 0px;">';
+            $out .= '<div class="form-left-positon" style="width: 280px;padding: -20px;float: left;">';
+            if (!empty(self::$agent['text'])) {
+                $out .= ' <h5>' . self::$agent['text'] . ' </h5>';
+            }
+            $out .= '<div id="msgleadgenerator">';
+            $out .= '</div>';
+            $out .= '<div class="form-group">';
+//            $out .= '<label for="name_leadgenerator">Full Name</label>';
+            $out .= '<input id="name_leadgenerator" type="text" class="form-control" name="name_leadgenerator" placeholder="Full Name">';
+            $out .= '</div>';
+//            $out .= '<div class="form-group">';
+////            $out .= '<label for="companyname_leadgenerator">Company Name</label>';
+//            $out .= '<input id="companyname_leadgenerator" type="text" class="form-control" name="companyname_leadgenerator" placeholder="Company Name">';
+//            $out .= '</div>';
+            $out .= '<div class="form-group">';
+//            $out .= '<label for="email_leadgenerator">Email</label>';
+            $out .= '<input id="email_leadgenerator" type="text" class="form-control" name="email_leadgenerator" placeholder="E-Mail Address">';
+            $out .= '</div>';
+            $out .= '<div class="form-group">';
+//            $out .= '<label for="phone_leadgenerator">Phone</label>';
+            $out .= '<input id="phone_leadgenerator" type="text" class="form-control" name="phone_leadgenerator" placeholder="Phone Number">';
+            $out .= '<input type="hidden" name="reporturl" value="' . (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? "https" : "http") . "://" . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"] . '">';
+            $out .= '</div>';
+            $out .= ' <button id="saveleadgenerator" type="submit" class="btn btn-primary" style="width: 100%;"> ' . self::$agent['text_button'] . '</button>';
+            $out .= ' </div>';
+            if (!empty(self::$agent['logo']) || !empty(self::$agent['name']) || !empty(self::$agent['position'])) {
+                $out .= '<div style="float: right;height: 200px;width: 205px;">';
+                $out .= '<div style="float: left;height: 100px;width: 205px;"></div>';
+                $out .= '<div style="float: left;height: 69px;width: 205px; text-align: center; font-size: 16px;">' . self::$agent['name'] . ' <br />' . self::$agent['position'] . '<br /><img src="' . self::$agent['logo'] . '" style="max-height: 50px; max-width: 175px;" /> </div>';
+                $out .= '</div>';
+            }
+
+            $out .= '<div class="toprrightimgemptymodal"></div>';
+            $out .= '<div class="toprrightimgmodal"></div>';
+
+
+            $out .= '</div>';
+//            $out .= '<div class="modal-footer">';
+//            
+//            $out .= ' </div>';
+            $out .= ' </div>';
+            $out .= '</form>';
+            $out .= ' </div>';
+            $out .= '</div>';
+            $out .= '<style>';
+            $out .= '#leadGenerator .modal-content { background: transparent url("' . self::$imgfolder . 'lead-generator-pop-up-main-bg.png") center no-repeat;}';
+            if (!empty(self::$agent['image'])) {
+                $out .= '#leadGenerator .toprrightimgmodal { background: transparent url("' . self::$agent['image'] . '") center no-repeat; position: absolute; top: -62px; right: 24px; height: 160px; border-radius: 150px; width: 160px}';
+                $out .= '#leadGenerator .toprrightimgemptymodal { background: transparent url("' . self::$imgfolder . 'lead-generator-pop-up-user-bg.png") center no-repeat; position: absolute; top: -62px; right: 24px; height: 160px; border-radius: 150px; width: 160px}';
+            } else {
+                $out .= '#leadGenerator .toprrightimgmodal { background: transparent url("' . self::$imgfolder . 'lead-generator-pop-up-user-default-man-bg.png") center no-repeat; position: absolute; top: -62px; right: 24px; height: 160px; border-radius: 150px; width: 160px}';
+            }
+
+            $out .= '</style>';
+            $out .= '<script>jQuery(document).ready(function () {urlLeadGenerate = "' . self::$urlLeadGenerator . '";});</script>';
+        }
+
         return $out;
     }
 
@@ -879,8 +1042,7 @@ class eRankerCommons {
      * @param string $format The format/theme we shall output. Default: BIG
      * @return string The html of the report score (the top part of a report). 
      */
-    public static function getReportScoreHTML($report, $generalscore, $format = self::BIG, $disable_pdf = false, $show_header = TRUE, $show_title = TRUE, $show_category = TRUE) {
-
+    public static function getReportScoreHTML($report, $generalscore, $format = self::BIG, $disable_pdf = false, $show_header = TRUE, $show_title = TRUE, $show_category = TRUE) {        
         $out = "";
         if ($show_header) {
             $report_url = trim(str_replace("http://", "", str_replace("https://", "", $report->url)), " /\\");
@@ -896,20 +1058,100 @@ class eRankerCommons {
                 $classResponsiveScores = '';
                 $classResponsiveFactorSite = '';
             }
+            //improve that?!?!?!?!?!?!?!?!?!?            
+            $translatedwords = array();
+            
+            if((isset($_GET["pdf"]) && isset($_GET["detectedLanguage"])) || isset($_COOKIE['detectedLanguage'])){
+                $detectedLanguage = @$_GET["detectedLanguage"];
+                if (!$detectedLanguage) {
+                    $detectedLanguage = $_COOKIE['detectedLanguage'];
+                }
+                switch($detectedLanguage){
+                    case 'en': 
+                        $translatedwords['overall'] = 'Overall';
+                        $translatedwords['outof'] = 'out of';
+                        $translatedwords['updatenow'] = 'Update now';
+                        $translatedwords['downloadpdfreport'] = 'Download PDF Report';
+                        $translatedwords['successfullypased'] = 'Successfully passed';
+                        $translatedwords['reportforurl'] = 'Report for URL';
+                        $translatedwords['roomforimprovement'] = 'Room for improvement';
+                        $translatedwords['errors'] = 'Errors';
+                        $translatedwords['generatedon'] = 'Generated on'; 
+                        break;
+                    case 'ro':
+                        $translatedwords['overall'] = 'Total';
+                        $translatedwords['outof'] = 'din';
+                        $translatedwords['updatenow'] = 'Actualizati acum';
+                        $translatedwords['downloadpdfreport'] = 'Descarcati raportul ca PDF';
+                        $translatedwords['successfullypased'] = 'Trecut cu succes';
+                        $translatedwords['reportforurl'] = 'Raport pentru URL-ul';
+                        $translatedwords['roomforimprovement'] = 'De imbunatatit';
+                        $translatedwords['errors'] = 'Erori';
+                        $translatedwords['generatedon'] = 'Generat la'; 
+                        break;
+                    case 'de':
+                        $translatedwords['overall'] = 'Über alle';
+                        $translatedwords['outof'] = 'aus';
+                        $translatedwords['updatenow'] = 'Jetzt aktualisieren';
+                        $translatedwords['downloadpdfreport'] = 'Download PDF Bericht';
+                        $translatedwords['successfullypased'] = 'Erfolgreich bestanden';
+                        $translatedwords['reportforurl'] = 'Bericht für URL';
+                        $translatedwords['roomforimprovement'] = 'Raum für Verbesserung';
+                        $translatedwords['errors'] = 'Fehler';
+                        $translatedwords['generatedon'] = 'Generiert am'; 
+                        break;
+                    case 'fr':                       
+                        $translatedwords['overall'] = 'Globale';
+                        $translatedwords['outof'] = 'sur';
+                        $translatedwords['updatenow'] = 'Mettre à jour maintenant';
+                        $translatedwords['downloadpdfreport'] = 'Télécharger le PDF Rapport';
+                        $translatedwords['successfullypased'] = 'Passé avec succès';
+                        $translatedwords['reportforurl'] = 'Rapport pour URL';
+                        $translatedwords['roomforimprovement'] = 'Marge d\'amélioration';
+                        $translatedwords['errors'] = 'Les erreurs';
+                        $translatedwords['generatedon'] = 'Généré le'; 
+                        break;
+                    default:                         
+                        $translatedwords['overall'] = 'Overall';
+                        $translatedwords['outof'] = 'out of';
+                        $translatedwords['updatenow'] = 'Update now';
+                        $translatedwords['downloadpdfreport'] = 'Download PDF Report';
+                        $translatedwords['successfullypased'] = 'Successfully passed';
+                        $translatedwords['reportforurl'] = 'Report for URL';
+                        $translatedwords['roomforimprovement'] = 'Room for improvement';
+                        $translatedwords['errors'] = 'Errors';
+                        $translatedwords['generatedon'] = 'Generated on';                        
+                }
+            }else{
+                $translatedwords['overall'] = 'Overall';
+                $translatedwords['outof'] = 'out of';
+                $translatedwords['updatenow'] = 'Update now';
+                $translatedwords['downloadpdfreport'] = 'Download PDF Report';
+                $translatedwords['successfullypased'] = 'Successfully passed';
+                $translatedwords['reportforurl'] = 'Report for URL';
+                $translatedwords['roomforimprovement'] = 'Room for improvement';
+                $translatedwords['errors'] = 'Errors';
+                $translatedwords['generatedon'] = 'Generated on'; 
+            }
+            
             $classPercent = (isset($_GET['pdf']) && !empty($_GET['pdf'])) ? '' : 'col-sm-4 col-md-2';
+            $divLoadingCircle = '<div class="loadingCircle"></div>';
             $out .= '<div class="row score-table">';
+            $score = (int)$generalscore['percentage'] > 1 ? round($generalscore['percentage']) : "&nbsp;";
             $out .= '<div class="' . $classPercent . ' col-lg-3 col-lg-3 factors-percent" style="padding:0 ' . $classResponsiveFactorsPercent . '">' // factors-percent
                     . '<aside>'
-                    . '<div class="overall-score">'
-                    . '<p>Overall</p>'
-                    . '<p class="reportfinalscore">' . round($generalscore['percentage']) . '</p>'
-                    . '<p>out of 100</p>'
+                    . '<div class="overall-score" id="overall-score">'
+                    . '<p style="padding-bottom: 0px">'. $translatedwords['overall'] .'</p>'
+                    . '<h5 class="reportfinalscore" style="padding-bottom: 0px">' . $score . '</h5>'
+                    . '<p style="padding-bottom: 0px">'. $translatedwords['outof'] .' 100</p>'
                     . '<div class="circle" id="circles" data-percent="' . $generalscore['percentage'] . '" ></div>' // percentage chart
-                    . '</div>' // overall
+                    . '<div class="loadingCircleExternal"><div class="loadingCircle" style="display:none;"></div>'
+                    . '</div>'
+                    . '</div><!-- #overall-score -->' // overall
                     . '<div class="additional-ratings">'
-                    . '<span>Generated on ' . self::convertDateTime($report->date_created, 'UTC') . '</span><br />';
+                    . '<span>'. $translatedwords['generatedon'] . ' ' . self::convertDateTime($report->date_created, 'UTC') . '</span>';
             if ($disable_pdf == FALSE) {
-                $out .= '<a id="update-now" onclick="hasSupport()">Update now</a></span>';
+                $out .= '<a id="update-now" onclick="hasSupport()">'. $translatedwords['updatenow'] .'</a></span>';
             }
             $out .= '<ul id="rating-stars">';
             $ratings = array('starsbg' => 'star-o', 'stars' => 'star'); // store rating stars
@@ -923,11 +1165,16 @@ class eRankerCommons {
             $out .= '</ul>'
                     . '</div>' // additional ratings
                     . '</aside>';
+
             if ($disable_pdf) {
-                $out .= '<div><a href="/export?id=' . $report->id . '&amp;type=pdf" id="download-pdf">Donwload PDF Report</a></div>';
+                if (!isset($_GET['pdf']) && empty($_GET['pdf'])) {
+                    $out .= '<div><a data-enabled="true" data-href="/export?id=' . $report->id . '&amp;type=pdf" id="download-pdf">Download PDF Report</a></div>';
+//                    $out .= '<div><a href="https://www.eranker.com/export?id=' . $report->id . '&amp;type=pdf" id="download-pdf">'. $translatedwords['downloadpdfreport'] .'</a></div>';
+
+                }
             } else {
-                $out .= '<div><a href="/' . $report->domain . '/' . $report->id .
-                        $out .= '<div><a download id="download-pdf" onclick="hasSupport()">Download PDF Report</a></div>';
+//                $out .= '<div><a href="/' . $report->domain . '/' . $report->id .
+//                        $out .= '<div><a download id="download-pdf" onclick="hasSupport()">'. $translatedwords['downloadpdfreport'] .'</a></div>';
             }
 
             $thumb_URL = "https://www.eranker.com/IMAGE"; //FIXTHIS
@@ -939,14 +1186,22 @@ class eRankerCommons {
             }
             $classfactorSite = (isset($_GET['pdf']) && !empty($_GET['pdf'])) ? ' ' : 'col-md-5 hidden-xs hidden-sm';
             $classScores = (isset($_GET['pdf']) && !empty($_GET['pdf'])) ? ' ' : 'col-sm-8 col-md-5';
+             
+            if($report->status == "WAITING"){
+                $generalscore['factors']['green'] = 0;
+                $generalscore['factors']['missing'] = 0;
+                $generalscore['factors']['orange'] = 0;
+                $generalscore['factors']['red'] = 0;
+            }
+            
             $out .= '</div>' // end factors-percent
                     . '<div class="' . $classScores . ' col-lg-5 factors-score" style="' . $classResponsiveScores . '">' // factors score
-                    . '<p>Report for URL:</p>'
+                    . '<p>'. $translatedwords['reportforurl'] .':</p>'
                     . '<h1>' . $report_url . '</h1>'
                     . '<ul>'
-                    . '<li class="col green"><i class="fa fa-check"></i><b class="factor-score">Successfully passed<span>' . $generalscore['factors']['green'] . '</span></b><div class="factorbar" style="width:' . ($generalscore['factors']['green'] * 100 / $score_raw_total) . '%"></div></li>'
-                    . '<li class="col orange"><i class="fa fa-minus"></i><b class="factor-score">Room for improvement<span>' . $generalscore['factors']['orange'] . '</span></b><div class="factorbar" style="width:' . ($generalscore['factors']['orange'] * 100 / $score_raw_total) . '%"></div></li>'
-                    . '<li class="col red"><i class="fa fa-times"></i><b class="factor-score">Errors<span>' . ( $generalscore['factors']['red'] + $generalscore['factors']['missing'] ) . '</span></b><div class="factorbar" style="width:' . ($generalscore['factors']['red'] * 100 / $score_raw_total) . '%"></div></li>'
+                    . '<li class="col green"><i class="fa fa-check"></i><b class="factor-score">'. $translatedwords['successfullypased'] .'<span>' . $generalscore['factors']['green'] . '</span></b><div class="factorbar" style="width:' . ($generalscore['factors']['green'] * 100 / $score_raw_total) . '%"></div></li>'
+                    . '<li class="col orange"><i class="fa fa-minus"></i><b class="factor-score">'. $translatedwords['roomforimprovement'] .'<span>' . $generalscore['factors']['orange'] . '</span></b><div class="factorbar" style="width:' . ($generalscore['factors']['orange'] * 100 / $score_raw_total) . '%"></div></li>'
+                    . '<li class="col red"><i class="fa fa-times"></i><b class="factor-score">'. $translatedwords['errors'] .'<span>' . ( $generalscore['factors']['red'] + $generalscore['factors']['missing'] ) . '</span></b><div class="factorbar" style="width:' . ($generalscore['factors']['red'] * 100 / $score_raw_total) . '%"></div></li>'
                     . '</ul>'
                     . '<div class="clearfix"></div>'
                     . '</div>' // end factors-score
@@ -955,7 +1210,7 @@ class eRankerCommons {
                     . '<img id="sitescreen" alt="Website Screenshot: ' . $report_url . '" src="' . $thumb_URL . '">' // actual site screen
                     . '</div>'
                     . '</div>'; // end factors-site
-            $out .= '</div><div class="clearfix"></div>'; // end score-table
+            $out .= '</div><div class="clearfix"></div>'; // end score-table            
         }
 
         return $out;
@@ -970,11 +1225,12 @@ class eRankerCommons {
      * @param boolean $is_loggedin If the user is logged in
      * @return string the HTML of the rendered factor
      */
-    public static function getFactorHTML($report, $factor, $score, $is_even = false, $is_loggedin = false, $show_header, $show_title, $show_category) {
+    public static function getFactorHTML($report, $factor, $score, $is_even = false, $is_loggedin = false, $show_header, $show_title, $show_category, $title = null) {
         //For this to aways be tru for now
         $is_loggedin = true;
-
+       
         $factor = (object) $factor;
+        
         $out = "";
         switch ($score['model']['status']) {
             case 'MISSING':
@@ -999,28 +1255,24 @@ class eRankerCommons {
                     break;
                 }
         }
-        $available = in_array($factor->id, $report->factors_available);
-
-
-
+        $available = in_array($factor->id, $report->factors_available);       
+        
         $status = $is_loggedin ? $status : 'question-circle';
         $statuscolor = $is_loggedin ? strtolower($score['model']['status']) : '';
 
-
-
-
-        $out .= '<div data-id="' . $factor->id . '" data-factorready="' . ($available ? '1' : '0') . '" class="erfactor ' . ($is_even ? 'even' : 'odd') . '" id="factor-' . $factor->id . '" data-status="' . $score['model']['status'] . '" '
-                . 'onclick="' . ( $is_loggedin ? 'niceToggle(jQuery(this).attr(\'id\'))' : '' ) . '">'
-                . '<div class="row">';
-        $out .= '<div class="factor-name col-sm-12 col-md-4 col-lg-3 ">';
+        $out .= '<div data-id="' . $factor->id . '" data-factorready="' . ($available ? '1' : '0') . '" class="noselect erfactor ' . ($is_even ? 'even' : 'odd') . '" id="factor-' . $factor->id . '" data-status="' . $score['model']['status'] . '" '
+                . 'onclick="' . ( $is_loggedin ? 'niceToggle(jQuery(this).attr(\'id\'))' : '' ) . '">';
+        $out .= !is_null($title) ? $title : "";
+        $out .= '<div class="row">';
+        $out .= '<div class="factor-name col-sm-12 col-md-4 col-lg-3">';
         $out .= '<div class="factor-name-inside">';
-
+        
         if ($available) {
-            $out .= ( $status ? '<i class="erankerreporticonspacer fa fa-' . $status . ' ' . $statuscolor . '"></i>' : '' ) . $factor->friendly_name;
+            $out .= ( $status ? '<i class="erankerreporticonspacer fa fa-' . $status . ' ' . $statuscolor . '"></i>' : '' ) . (isset($factor->text["friendly_name"]) ? $factor->text["friendly_name"] : '');
         } else {
-            $out .= '<i class="erankerreporticonspacer fa fa-cog fa-spin"></i>' . $factor->friendly_name;
+            $out .= '<i class="erankerreporticonspacer fa fa-cog fa-spin"></i>' . (isset($factor->text["friendly_name"]) ? $factor->text["friendly_name"] : '');
         }
-        $out .= '</div>';
+        $out .= '</div><!-- .factor-name-inside -->';
 
 
         $out .= '<div class="ericonsrow">';
@@ -1049,7 +1301,7 @@ class eRankerCommons {
                 $out .= '<i class="fa fa-heart-o"></i>';
             }
         }
-        $out .= '</div>';
+        $out .= '</div><!-- .erankertooltip.errankerreportficons.errankerreportficons-red -->';
 
 
         $dificulty = 1;
@@ -1071,33 +1323,41 @@ class eRankerCommons {
                 $out .= '<i class="fa fa-star-o"></i>';
             }
         }
-        $out .= '</div>';
+        
+        $out .= '</div><!-- .erankertooltip.errankerreportficons.errankerreportficons-yellow -->';
 
+        $out .= '</div><!-- .ericonsrow -->';
 
+        $out .= '</div><!-- .factor-name -->';
 
-        $out .= '</div>';
-
-
-        $out .= '</div>';
-
-        $out .= '<div class="factor-data col-sm-12 col-md-8 col-lg-9  ">';
-        if ($available) {
+        $out .= '<div class="factor-data col-sm-12 col-md-8 col-lg-9 noselect">';        
+       
+        if ($available) {            
             $out .= self::getFactorHTMLHelper($report, $factor, $score['model']['model'], $score['data'], $score['model']['status'], $is_loggedin);
-        } else {
+        }else {
             $out .= '<i class="fa fa-cog fa-spin"></i> Loading...';
-        }
-        $out .= '</div>';
-
-
-
+        }        
+        
+        //if not anchors-text or responsiveness or page in links
+        //close div else div is closed in guiAnchorstext function and responsiveness                   
+        if((strcasecmp($factor->id, 'anchors-text') !== 0 && strcasecmp($factor->id, 'responsiveness') !== 0) 
+                || (strcasecmp($factor->id, 'anchors-text') !== 0 && strcasecmp($factor->id, 'responsiveness') !== 0 && $available)
+                || !$available || (isset($_SESSION['nullDisplay']) && $_SESSION['nullDisplay'] === "nullDisplay" && strcasecmp($factor->id, 'anchors-text') === 0)){
+            
+            $out .= '</div><!-- .factor-data -->';
+        }        
+                
         if (strcasecmp($factor->id, 'backlinks') == 0) {
             $out .= '<div class="col can-float factor-data-backlinks">';
             $out .= '</div>';
-        }
-
-        $out .= $is_loggedin ? '<div class="clearfix col factor-info"><p>' . html_entity_decode($score['model']['description']) . '</p></div>' : '';
-
-        $out .= '<div class="clearfix"></div></div>' . '<i class="fa fa-plus expandtoggle"></i>' . '</div>';
+        }       
+        
+        $out .= $is_loggedin ? '<div class="clearfix col factor-info"><p>' . stripslashes(html_entity_decode(stripslashes($score['model']['description']))) . '</p></div>' : '';
+       
+        $out .= '<div class="clearfix"></div>'
+                . '</div><!-- .row -->' 
+                . '<i class="fa fa-minus expandtoggle show-details"></i>' 
+                . '</div><!-- .erfactor -->';
 
         return $out;
     }
@@ -1136,20 +1396,476 @@ class eRankerCommons {
 
     public static function getFactorHTMLHelper($report, $factor, $endModel, $data, $status, $is_loggedin) {
         $html = "";
+
         $factor = self::objectToArray($factor);
+
+        $endModel = html_entity_decode(stripslashes($endModel));  
+        
         if ($is_loggedin || (!$is_loggedin && $factor['free'])) {
-            $html = forward_static_call(array(self::NAME, 'gui' . ucfirst($factor['gui_type'])), html_entity_decode($endModel), $data, $report);
-        } else {
-            $html = '<div class="has-blur"></div>';
+            $html .= forward_static_call(array(self::NAME, 'gui' . ucfirst($factor['gui_type'])), html_entity_decode($endModel), $data, $report, $factor);
+        }else {
+            $html .= '<div class="has-blur"></div>';
+        }
+        
+        return $html;
+    }   
+
+    public static function guiDefault($endModel, $data, $report, $factor) {
+        return is_null($endModel) ? $data : $endModel;
+    }
+    
+    public static function guiInstagram($endModel, $data, $report, $factor) {        
+        $out = '<div class="row guiinstagram">';
+        
+        if(!empty($data)){            
+            ((isset($data['name']) && $data['name'] != '') && (isset($data['profile_icon']) && $data['profile_icon'] != '')) 
+                ? ($out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("name", $factor). ':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'
+                            . '<img src="'. (eRankerCommons::fixURL($data["profile_pic"]) !== false ? eRankerCommons::fixURL($data["profile_pic"]) : $data["profile_pic"]) .'" style="width:18px;height:18px;cursor:pointer;margin-right:6px;margin-top:-2px;">'. ucfirst($data['name']) 
+                        .'</div>')
+                : ((isset($data['name']) && $data['name'] != '') 
+                        ? ($out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("name", $factor). ':</b></div>'
+                            .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. ucfirst($data['name']) .'</div>')  
+                        : $out .= '');
+            
+            (isset($data['instagram']) && $data['instagram'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><img src="'. self::$imgfolder .'technologies/instagram-icon.png" style="margin-right:6px;margin-top:-2px;"></div>' 
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft"><a href="'. (eRankerCommons::fixURL($data["instagram"]) !== false ? eRankerCommons::fixURL($data["instagram"]) : $data["instagram"]) .'" target="_blank">'. $data['instagram'] .'</a></div>' 
+                : $out .= '';
+            
+            (isset($data['biography']) && $data['biography'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("biography", $factor). ':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. ucfirst($data['biography']) .'</div>' 
+                : $out .= '';
+            
+            (isset($data['followedby']) && $data['followedby'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("followedby", $factor).':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['followed_by'] .'</div>' 
+                : $out .= '';
+            
+            (isset($data['following']) && $data['following'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("following", $factor).':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['following'] .'</div>' 
+                :   $out .= '';      
+            
+        }else{
+            $out .= '<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 nopaddingleft">'. self::translate("model_red", $factor) .'</div>';
+        }
+        
+        $out .= '</div>';
+
+        return $out;
+    }
+    
+    public static function guiTwitter($endModel, $data, $report, $factor) {        
+        $out = '<div class="row guitwitter">';
+        
+        if(!empty($data)){  
+            (isset($data['img_background']) && $data['img_background'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 nopaddingleft"><a href="'. (eRankerCommons::fixURL($data['img_background']) !== false ? eRankerCommons::fixURL($data['img_background']) : $data['img_background']) .'" target="_blank">'
+                        .'<img src="'. (eRankerCommons::fixURL($data['img_background']) !== false ? eRankerCommons::fixURL($data['img_background']) : $data['img_background']) .'" style="width:100%;margin-bottom:25px;margin-top:5px">'
+                        .'</a>'
+                        .'</div>'                        
+                : $out .= '';
+            
+            (isset($data['twitter']) && $data['twitter'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><img src="'. self::$imgfolder .'technologies/Twitter Follow Button.png" style="margin-right:6px;margin-top:-2px;"></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'
+                            . '<a href="'. (eRankerCommons::fixURL($data["twitter"]) !== false ? eRankerCommons::fixURL($data["twitter"]) : $data["twitter"]) .'" target="_blank">'. $data['twitter']
+                            .'</a>'
+                        . '</div>'
+                : $out .= '';
+            
+            ((isset($data['name']) && $data['name'] != '') && (isset($data['img_profile']) && $data['img_profile'] != '')) 
+                ? ($out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("name", $factor). ':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'
+                            .'<img src="'. (eRankerCommons::fixURL($data["img_profile"]) !== false ? eRankerCommons::fixURL($data["img_profile"]) : $data["img_profile"]) .'" style="width:18px;height:18px;cursor:pointer;margin-right:6px;margin-top:-2px;">'. ucfirst($data['name']) 
+                        .'</div>') 
+                : ((isset($data['name']) && $data['name'] != '') 
+                    ? ($out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("name", $factor). ':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. ucfirst($data['name']) .'</div>')
+                    : $out .= '');
+            
+            (isset($data['followers']) && $data['followers'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("followers", $factor).':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['followers'] .'</div>' 
+                : $out .= '';
+            
+            (isset($data['bio']) && $data['bio'] != "") 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("bio", $factor).':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['bio'] .'</div>' 
+                : $out .= '';
+            
+            (isset($data['location']) && $data['location'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("location", $factor).':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['location'] .'</div>' 
+                : $out .= '';
+            
+            (isset($data['tweets']) && $data['tweets'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("tweets", $factor).':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['tweets'] .'</div>' 
+                : $out .= '';
+           
+        }else{
+            $out .= '<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 nopaddingleft">'. self::translate("model_red", $factor) .'</div>';
+        }
+        
+        $out .= '</div>';
+        
+        return $out;
+    }
+    
+    public static function guiLinkedin($endModel, $data, $report, $factor) {        
+        $out = '<div class="row guilinkedin">';
+        
+        if(!empty($data)){            
+            ((isset($data['name']) && $data['name'] != '') && (isset($data['profile_img']) && $data['profile_img'] != '')) 
+                ?($out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("name", $factor). ':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'
+                            . '<img src="'. (eRankerCommons::fixURL($data["profile_img"]) !== false ? eRankerCommons::fixURL($data["profile_img"]) : $data["profile_img"]) .'" style="width:18px;height:18px;cursor:pointer;margin-right:6px;margin-top:-2px;">'. ucfirst($data['name']) 
+                        .'</div>')
+                : ((isset($data['name']) && $data['name'] != '') 
+                        ? ($out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("name", $factor). ':</b></div>'
+                            .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. ucfirst($data['name']) .'</div>')
+                        : $out .= '');
+            
+            (isset($data['linkedin']) && $data['linkedin'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><img src="'. self::$imgfolder .'technologies/LinkedIn Platform API.png" style="margin-right:6px;margin-top:-2px;"></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'
+                            .'<a href="'. (eRankerCommons::fixURL($data["linkedin"]) !== false ? eRankerCommons::fixURL($data["linkedin"]) : $data["linkedin"]) .'" target="_blank">'. $data['linkedin'] .'</a>'
+                        .'</div>' 
+                : $out .= '';
+            
+            (isset($data['type']) && $data['type'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("type", $factor). ':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. ucfirst($data['type']) .'</div>' 
+                : $out .= '';
+            
+            (isset($data['description']) && $data['description'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("description", $factor).':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['description'] .'</div>' 
+                : $out .= '';
+            
+            (isset($data['specialties']) && $data['specialties'] != '') ?
+                $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("specialties", $factor).':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['specialties'] .'</div>' 
+            : $out .= '';
+            
+            (isset($data['industry']) && $data['industry'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("industry", $factor).':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['industry'] .'</div>' 
+                : $out .= '';
+            
+            (isset($data['size']) && $data['size'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("size", $factor).':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['size'] .'</div>' :
+                $out .= '';                       
+            
+        }else{
+            $out .= '<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 nopaddingleft">'. self::translate("model_red", $factor) .'</div>';
+        }
+        
+        $out .= '</div>';
+
+        return $out;
+    }
+    
+    public static function guiGoogleplussocial($endModel, $data, $report, $factor){
+        $out = '<div class="row guigoogleplussocial">';
+        
+        if(!empty($data)){  
+            (isset($data['image_background']) && $data['image_background'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 nopaddingleft googleplusfactor">'
+                            .'<a href="'. (eRankerCommons::fixURL($data['image_background']) !== false ? eRankerCommons::fixURL($data['image_background']) : $data['image_background']) .'" target="_blank">'
+                                .'<img src="'. (eRankerCommons::fixURL($data['image_background']) !== false ? eRankerCommons::fixURL($data['image_background']) : $data['image_background']) .'" class="imgbgrdgoogleplus">'
+                            .'</a>'
+                        .'</div>'                        
+                : $out .= '';
+            
+            (isset($data['google_plus']) && $data['google_plus'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><img src="'. self::$imgfolder .'technologies/Google Plus One Button.png" style="margin-right:6px;margin-top:-2px;"></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'
+                            . '<a href="'. (eRankerCommons::fixURL($data["google_plus"]) !== false ? eRankerCommons::fixURL($data["google_plus"]) : $data["google_plus"]) .'" target="_blank">'. $data['google_plus']
+                            .'</a>'
+                        . '</div>'
+                : $out .= '';
+            
+            ((isset($data['name']) && $data['name'] != '') && (isset($data['image_profile']) && $data['image_profile'] != '')) 
+                ? ($out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("name", $factor). '</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'
+                            .'<img src="'. (eRankerCommons::fixURL($data["image_profile"]) !== false ? eRankerCommons::fixURL($data["image_profile"]) : $data["image_profile"]) .'" style="width:18px;height:18px;cursor:pointer;margin-right:6px;margin-top:-2px;">'. ucfirst($data['name']) 
+                        .'</div>') 
+                : ((isset($data['name']) && $data['name'] != '') 
+                    ? ($out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("name", $factor). '</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. ucfirst($data['name']) .'</div>')
+                    : $out .= '');
+            
+            (isset($data['tagline']) && $data['tagline'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("tagline", $factor). '</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. ucfirst($data['tagline']) .'</div>' 
+                : $out .= '';
+            
+            (isset($data['introduction']) && $data['introduction'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("introduction", $factor). '</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. ucfirst($data['introduction']) .'</div>' 
+                : $out .= '';            
+            
+            (isset($data['email']) && $data['email'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("email", $factor). '</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. ucfirst($data['email']) .'</div>' 
+                : $out .= '';
+            
+            (isset($data['followers']) && $data['followers'] != '') 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("followers", $factor).'</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['followers'] .'</div>' 
+                : $out .= '';
+                       
+            (isset($data['views']) && $data['views'] != "") 
+                ? $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("views", $factor).'</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['views'] .'</div>' 
+                : $out .= '';                       
+           
+        }else{
+            $out .= '<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 nopaddingleft">'. self::translate("model_red", $factor) .'</div>';
+        }
+        
+        $out .= '</div>';
+        
+        return $out;        
+    }
+    
+    public static function guiFacebooksocial($endModel, $data, $report, $factor){        
+        $out = '<div class="row guifacebooksocial">';
+        
+        if(!empty($data) && count($data) > 1){            
+            if(isset($data['img_background']) && !empty($data['img_background'])){
+                 $out .= '<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 nopaddingleft facebooksocialfactor">'
+                            .'<a href="'. (eRankerCommons::fixURL($data['img_background']) !== false ? eRankerCommons::fixURL($data['img_background']) : $data['img_background']) .'" target="_blank">'
+                                .'<img src="'. (eRankerCommons::fixURL($data['img_background']) !== false ? eRankerCommons::fixURL($data['img_background']) : $data['img_background']) .'" class=".imgbgrdfacebooksocial">'
+                            .'</a>'
+                        .'</div>' ;
+            }        
+            
+            if(isset($data['img_profile']) && !empty($data['img_profile'])){
+                if(isset($data['facebook']) && !empty($data['facebook'])){
+                    $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><img src="'. self::$imgfolder .'technologies/Facebook Like Button.png" style="margin-right:6px;margin-top:-2px;"></div>'
+                            .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'
+                                . '<img src="'. (eRankerCommons::fixURL($data["img_profile"]) !== false ? eRankerCommons::fixURL($data["img_profile"]) : $data["img_profile"]) .'" style="width:18px;height:18px;cursor:pointer;margin-right:6px;margin-top:-2px;">'
+                                . '<a href="'. (eRankerCommons::fixURL($data["facebook"]) !== false ? eRankerCommons::fixURL($data["facebook"]) : $data["facebook"]) .'" target="_blank">'. $data['facebook']
+                                .'</a>'
+                            . '</div>';
+                }
+            }else{
+                if(isset($data['facebook']) && !empty($data['facebook'])){
+                    $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><img src="'. self::$imgfolder .'technologies/Facebook Like Button.png" style="margin-right:6px;margin-top:-2px;"></div>'
+                            .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'
+                                . '<a href="'. (eRankerCommons::fixURL($data["facebook"]) !== false ? eRankerCommons::fixURL($data["facebook"]) : $data["facebook"]) .'" target="_blank">'. $data['facebook']
+                                .'</a>'
+                            . '</div>';
+                }
+            }           
+            
+            if(isset($data['company_type']) && !empty($data['company_type'])){
+                $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("company_type", $factor).':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['company_type'] .'</div>';
+            }
+            
+            if(isset($data['short_description']) && !empty($data['short_description'])){
+                $out .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><b>' .self::translate("short_description", $factor).':</b></div>'
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['short_description'] .'</div>';
+            }
+            
+        }else{
+            $out .= '<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">'. self::translate("model_red", $factor) .'</div>';
+        }
+        
+        $out .= '</div>';
+        
+        return $out;
+    }
+    
+    public static function guiInpagelinks($endModel, $data, $report, $factor) {    
+        
+        $out = '<div class="row">';
+        
+        if(!empty($data)){
+            $dataforchart = $data[count($data)-1];
+            if(isset($dataforchart['total']) && $dataforchart['total'] !== 0){        
+                $attr = '';
+                
+                foreach($dataforchart as $key => $value){
+                    $attr .= 'data-'.$key.'='.$value.' ';
+                }
+
+                $out .= '<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 chartinpagelinks nopaddingleft paddingupdown" data-chartready="false" '. $attr .'></div>';
+                
+                //legend
+                $out .= '<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 nopaddingleft" style="width: 40%;margin-top: 6px;">'
+                            .'<table class="table table-condensed table-bordered">'
+                                .'<thead>'
+                                    . '<tr style="background-color: #C2C0C0;"><th><b>'. self::translate('legend', $factor) .'</b></th></tr>'
+                                . '</thead>'
+                                . '<tbody>'
+                                    . '<tr><td><p><i class="fa fa-check" style="color:green;"></i>: '. self::translate('legend_underscore', $factor) .'</p></td></tr>'
+                                    . '<tr><td><p><i class="fa fa-link" style="font-size:15px;"></i>: '. self::translate('internal-link', $factor) .'</p></td></tr>'
+                                    . '<tr><td><p><i class="fa fa-external-link" style="font-size:15px;"></i>: '. self::translate('external-link', $factor) .'</p></td></tr>'
+                                    . '<tr><td><p><i class="fa fa-expand" style="font-size:15px; color:#EF7622;padding: 5px;border: 1px solid #EF7622;"></i>,'
+                                                . '<i class="fa fa-compress" style="font-size:15px; color:#EF7622;padding: 5px;border: 1px solid #EF7622;margin-left:3px;"></i>: '. self::translate('legend_table', $factor) .'</p></td></tr>'
+                                . '</tbody>'
+                            . '</table>'                     
+                        . '</div>'; 
+                
+                $out .= '<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 nopaddingleft paddingupdown">'; 
+                $out .= "<table class='table table-condensed table-bordered tabletocollapse'>"
+                        . "<thead>"
+                        . '<tr style="background-color: #C2C0C0;"><th><strong>'. self::translate('anchor', $factor) .'</strong></th>
+                                <th class="hidden-xs hidden-sm"><strong>'. self::translate('type', $factor) .'</strong></th>
+                                <th class="hidden-xs"><strong>'. self::translate('follow', $factor) .'</strong></th>
+                         </tr>'
+                        . "</thead>"
+                        . "<tbody>";
+                $howmuchtoshow = 0;
+
+                for($i=0;$i<count($data)-1;$i++){
+                    $howmuchtoshow++;
+
+                    $out .= '<tr'. ($data[$i]['type'] === 1 ? ' style="background-color: #ECECEC;"' : '') 
+                                .' '
+                                . ($howmuchtoshow > 10 ? 'class="hiderows"' : '') 
+                            .'>';
+
+                    if($data[$i]['type'] === 1){
+                        $icon = '<i class="fa fa-link" style="font-size:15px;margin-right:3px;padding: 11px;"></i>';
+                    }else if($data[$i]['type'] === 2){
+                        $icon = '<i class="fa fa-external-link" style="font-size:15px;margin-right:3px;padding: 11px;"></i>';
+                    }
+
+                    if(strlen($data[$i]['anchor']) > 37){
+                        $urlanchor = substr($data[$i]['anchor'],0,37).'...';
+                    }else{
+                        $urlanchor = $data[$i]['anchor'];
+                    }
+
+                    if($data[$i]['underscore'] === true){
+                        $yet = '<i class="fa fa-check" style="color:green; margin-left:3px;"></i>';
+                    }else{
+                        $yet = '';
+                    }
+
+                    if(isset($data[$i]['text']) && strlen($data[$i]['text']) > 35){
+                        $textanchor = substr($data[$i]['text'],0,35).'...'.$yet;
+                    }else if(isset($data[$i]['text'])){
+                        $textanchor = $data[$i]['text'].$yet;
+                    }else{
+                        $textanchor = '';
+                    } 
+
+                    $out .= '<td><strong>'. $icon .'</strong>'
+                            .'<a href="'. (eRankerCommons::fixURL($data[$i]['anchor']) !== false ? eRankerCommons::fixURL($data[$i]['anchor']) : $data[$i]['anchor']) .'" target="_blank">'
+                                . (isset($data[$i]['text']) ? $textanchor : $urlanchor) 
+                            .'</a>'                        
+                            . '</td>';                   
+
+                    if($data[$i]['type'] === 1){
+                        $out .= '<td class="hidden-xs hidden-sm">'.self::translate('internal-link', $factor) .'</td>';
+                    }else if($data[$i]['type'] === 2){
+                        $out .= '<td class="hidden-xs hidden-sm">'.self::translate('external-link', $factor) .'</td>';
+                    }
+                    if(isset($data[$i]['follow'])){
+                        if($data[$i]['follow'] === 1){
+                            $out .= '<td class="hidden-xs hidden-sm">'. self::translate('no-follow', $factor) .'</td>';                                  
+                        }else if($data[$i]['follow'] === 2){
+                            $out .= '<td class="hidden-xs hidden-sm">'. self::translate('follow', $factor) .'</td>';                                  
+                        }
+                    }else{
+                        $out .= '<td class="hidden-xs hidden-sm">'. self::translate('no-follow', $factor) .'</td>';
+                    }   
+
+                    $out .= '</tr>';                
+                }
+
+                $out        .= '</tbody>'
+                        . '</table>'
+                    . '</div>';
+
+                if($howmuchtoshow > 10){
+                    $out .= '<div class="despicableme col-xs-12 col-sm-12 col-md-12 col-lg-12 nopaddingleft"><a class="expandtable" href="javascript:void(0);"><i class="fa fa-expand"></i></a></div>';
+                }                               
+            }else{
+                $out .= '<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">'. self::translate("model_red", $factor) .'</div>';
+            }       
+        }else{
+            $out .= '<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">'. self::translate("model_red", $factor) .'</div>';
+        }        
+        
+        $out .= '</div>';
+        
+        return $out;
+    }
+    
+    public static function guiRobotstxt($endModel, $data, $report, $factor) {         
+        $html = eRankerCommons::guiDefault(html_entity_decode($endModel), $data, $report, $factor);       
+        if(!is_null($data)){
+            $content = '';
+            if($data['valid'] && $data['robotstxt']){                           
+                if(gettype($data['content']) == "string" && !empty($data['content'])){
+                    if(strstr($data['content'], PHP_EOL) !== false){
+                        $a = explode(PHP_EOL,$data['content']);
+                        $content .= implode("<br>",$a);  
+                    }else{
+                        $content .= $data['content'];
+                    }
+                }else if(gettype($data['content']) == "array"){                    
+                    foreach($data['content'] as $cont){
+                        $content .= $cont.'<br>';
+                    }
+                }                
+
+                if(!is_null($data['url']) && !empty($data['url'])){                               
+                    $html .= '<br><a href="'. (eRankerCommons::fixURL($data['url']) !== false ? eRankerCommons::fixURL($data['url']) : $data['url']) .'" style="color:#555" target="_blank">'. $data['url'] .'</a><br><div class="trickydiv"><div class="robotstxtcontainer robotstoggle rttoggledown">'. $content .'</div></div>';
+                }else{
+                    $html .= '<br><div class="trickydiv"><div class="robotstxtcontainer robotstoggle rttoggledown">'. $content .'</div></div>';
+                }
+                
+                if(strlen($content) > 250){
+                    $html .= '<a class="robotstxt" href="javascript:void(0);" onclick="'
+                            . 'if(jQuery(\'.robotstoggle\').hasClass(\'rttoggledown\')){'
+                                . 'robotsTxtToggle(\' '. __('Show less','er'). '\');}'
+                            . 'else if(jQuery(\'.robotstoggle\').hasClass(\'rttoggleup\')){'
+                                . 'robotsTxtToggle(\' '. __('Show more','er') .'\')}">'
+                            . __('Show more','er') 
+                        .'</a>';
+                }
+
+            }
+        }
+        
+        return $html;
+    }
+    
+    public static function guiBlogpage($endModel, $data, $report, $factor){
+        if(!is_null($data)){
+            $html = '<a href="'. (eRankerCommons::fixURL($data) !== false ? eRankerCommons::fixURL($data) : $data) .'" rel="nofollow" style="color:#555" target="_blank">'. (is_null($endModel) ? $data : $endModel) . '</a>';
+        }else{
+            $html = is_null($endModel) ? $factor[id] : $endModel;                        
         }
         return $html;
     }
-
-    public static function guiDefault($endModel, $data, $report) {
-        return is_null($endModel) ? $data : $endModel;
+    
+    public static function guiFavicon($endModel, $data, $report, $factor){        
+        $html = '';
+        if($data != null){
+            //add in factor description this part. 
+            //<img src="'. (eRankerCommons::fixURL($data) !== false ? eRankerCommons::fixURL($data) : $data) .'" style="width:18px;height:18px;cursor:pointer;margin-right:6px;margin-top:-2px;">
+            $html .= '<a href="'. (eRankerCommons::fixURL($data) !== false ? eRankerCommons::fixURL($data) : $data) .'" style="color:#555" target="_blank">'. (is_null($endModel) ? $data : $endModel) . '</a>';        
+        }else{
+            $html .= $endModel;
+        }        
+        
+        return $html;        
     }
-
-    public static function guiHeadings($endModel, $data, $report) {
+    
+    public static function guiHeadings($endModel, $data, $report, $factor) {
         $out = '';
         if (!is_null($data)) {
             $obj = (object) $data;
@@ -1157,7 +1873,7 @@ class eRankerCommons {
             for ($i = 1; $i <= 6; $i++) {
                 $out .= $i == 1 ? '<tr class="report_headingtable_firstrow">' : '';
                 $out .= '<th>&lt;H' . $i . '&gt;</th>';
-                $out .= $i == 6 ? '<th>Total</th></tr>' : '';
+                $out .= $i == 6 ? '<th>' . self::translate("total", $factor) . '</th></tr>' : '';
             }
             for ($i = 1; $i <= 6; $i++) {
                 $out .= $i == 1 ? '<tr>' : '';
@@ -1182,18 +1898,17 @@ class eRankerCommons {
                 }
                 if ($count >= 10) {
                     $out .="</div>"; // > 10 wrapper close
-                    $out .="<a href='javascript:jQuery(\"#erreport .headings_taglist_more\").slideDown();jQuery(\"#erreport .headings_taglist_showmore\").hide();jQuery(\"#erreport .headings_taglist_showless\").show();' class='headings_taglist_showmore' style='display:block'><i class=\"fa fa-angle-down\"></i>  Show more</a>";
-                    $out .="<a href='javascript:jQuery(\"#erreport .headings_taglist_more\").slideUp();jQuery(\"#erreport .headings_taglist_showmore\").show();jQuery(\"#erreport .headings_taglist_showless\").hide();' class='headings_taglist_showless' style='display:none'><i class=\"fa fa-angle-up\"></i> Show less</a>";
+                    $out .="<a href='javascript:jQuery(\"#erreport .headings_taglist_more\").slideDown();jQuery(\"#erreport .headings_taglist_showmore\").hide();jQuery(\"#erreport .headings_taglist_showless\").show();' class='headings_taglist_showmore' style='display:block'><i class=\"fa fa-angle-down\"></i>  " . self::translate('showmore', $factor) . "</a>";
+                    $out .="<a href='javascript:jQuery(\"#erreport .headings_taglist_more\").slideUp();jQuery(\"#erreport .headings_taglist_showmore\").show();jQuery(\"#erreport .headings_taglist_showless\").hide();' class='headings_taglist_showless' style='display:none'><i class=\"fa fa-angle-up\"></i> " . self::translate('showless', $factor) . "</a>";
                 }
                 $out .="</div>";
             }
         }
 
-
         return empty($out) ? false : '<div class="headings-style">' . $out . '</div>';
     }
 
-    public static function guiStructureddata($endModel, $data, $report) {
+    public static function guiStructureddata($endModel, $data, $report, $factor) {
         $out = $endModel;
         if (!empty($data) && is_array($data)) {
             if (!empty($out)) {
@@ -1201,29 +1916,31 @@ class eRankerCommons {
             }
             $out = implode(", ", $data);
         }
-        return (!empty($data)) ? $out : "You need implement structured data on your website.";
+        return (!empty($data)) ? $out : self::translate("uneedimplement", $factor);
     }
 
-    public static function guiEmails($endModel, $data, $report) {
+    public static function guiEmails($endModel, $data, $report, $factor) {
         $out = '';
         if (!empty($data)) {
             foreach ($data as $singleEmail) {
-                $out .= '<img src="' . self::$factorCreateImageFolder . 'createimage.php?size=11&amp;transparent=1&amp;padding=0&amp;bgcolor=250&amp;textcolor=50&amp;text=' . urlencode(strrev(base64_encode($singleEmail))) . '" alt="Website Contact Email"><br />';
+                $out .= '<img src="' . self::$factorCreateImageFolder . 'createimage.php?size=11&amp;transparent=1&amp;padding=0&amp;bgcolor=250&amp;textcolor=50&amp;text=' . urlencode(strrev(base64_encode($singleEmail))) . '" alt="' . self::translate('sitecontactmail', $factor) . '"><br />';
             }
         }
 
-        return empty($out) ? '<div class="emails-style">Emails not found inside the HTML content.</div>' : $out;
+        return empty($out) ? '<div class="emails-style">' . self::translate("emailnotfound", $factor) . '.</div>' : $out;
     }
 
-    public static function guiLogo($endModel, $data, $report) {
+    public static function guiLogo($endModel, $data, $report, $factor) {        
         if (!is_null($data)) {
-            return "<a href='" . str_replace("'", "", strip_tags($data)) . "' target='_blank'><img src='" . str_replace("'", "", strip_tags($data)) . "' alt='Website Logo' style='max-width:400px;max-height: 100px;'></a>";
+            return "<a href='" . (eRankerCommons::fixURL(str_replace("'", "", strip_tags($data))) !== false ? eRankerCommons::fixURL(str_replace("'", "", strip_tags($data))) : str_replace("'", "", strip_tags($data))) . "' target='_blank'>"
+                        . "<img src='" . (eRankerCommons::fixURL(str_replace("'", "", strip_tags($data))) !== false ? eRankerCommons::fixURL(str_replace("'", "", strip_tags($data))) : str_replace("'", "", strip_tags($data))) . "' alt='Website Logo' style='max-width:100%;'>"
+                    . "</a>";
         } else {
             return $endModel;
         }
     }
 
-    public static function guiAlexarank($endModel, $data, $report) {
+    public static function guiAlexarank($endModel, $data, $report, $factor) {
         $out = '';
         if (!is_null($data)) {
             $obj = (object) $data;
@@ -1231,13 +1948,13 @@ class eRankerCommons {
                 $out = $obj->rank;
             }
         }
-        return empty($out) ? '<div class="alexarank-style">You are not listed in Alexa, most probably because your website has a very low amount of traffic.</div>' : $endModel;
+        return empty($out) ? '<div class="alexarank-style">' . self::translate("notlistedalexa", $factor) . '</div>' : $endModel;
     }
 
-    public static function guiPhone($endModel, $data, $report) {
+    public static function guiPhone($endModel, $data, $report, $factor) {
 
         if (empty($data)) {
-            return "Phones not found inside the home or contact page.";
+            return self::translate("notfoundphones", $factor);
         }
 
         $out = '';
@@ -1253,8 +1970,7 @@ class eRankerCommons {
         return $out;
     }
 
-    public static function guiBacklinks($endModel, $data, $report) {
-        //var_dump($data);
+    public static function guiBacklinks($endModel, $data, $report, $factor) {        
         $out = '';
         $chartsData = array();
 
@@ -1266,17 +1982,17 @@ class eRankerCommons {
         $chartsData[] = array(array("id" => "redirect", "title" => "Redirect"), array("id" => "canonical", "title" => "Canonical"));
         $chartsData[] = array(array("id" => "alternate", "title" => "Alternate"), array("id" => "html_pages", "title" => "HTML Pages"));
 
-
-
         //array('gov' => 'Gov', 'edu' => 'Edu', 'rss' => 'Rss'),
 
         $charts = "";
         foreach ($chartsData as $chartNumber => $singleChart) {
             if (isset($data[$singleChart[0]["id"]]) && isset($data[$singleChart[1]["id"]]) && ($data[$singleChart[0]["id"]] + $data[$singleChart[1]["id"]]) > 0) {
-                $charts .= "<div class='backlinkchartwrapper'><div style='width:100%;margin: 0 auto' class='backlinkchart' data-chartready='false' "
+                $charts .= "<div class='backlinkchartwrapper'>"
+                        . "<div style='width: 100%;margin: 0 auto' class='backlinkchart' data-chartready='false' "
                         . "data-id1='" . $singleChart[0]["id"] . "' data-id2='" . $singleChart[1]["id"] . "' "
                         . "data-title1='" . $singleChart[0]["title"] . "' data-title2='" . $singleChart[1]["title"] . "' "
-                        . "data-value1='" . $data[$singleChart[0]["id"]] . "'  data-value2='" . $data[$singleChart[1]["id"]] . "'></div></div>";
+                        . "data-value1='" . $data[$singleChart[0]["id"]] . "'  data-value2='" . $data[$singleChart[1]["id"]] . "'></div>"
+                        . "</div><!-- .backlinkchartwrapper -->";
             }
         }
 
@@ -1290,36 +2006,56 @@ class eRankerCommons {
 //                $out .= $chart;
 //            }
 //        }
-
-        $top = "<h4 class='marginbottom0'>Total number of external backlinks: <b>" . $data['total'] . "</b></h4>
-            <p>The website has a total of <b>" . $data['refpages'] . "</b> unique external pages pointing its pages</p>";
+        
+        $translate1 = self::translate("totalbacklinks", $factor);
+        
+        $translate2 = self::translate("totalhefpage", $factor);
+        
+        $top = "<h4 class='marginbottom0'>" . html_entity_decode(sprintf(stripslashes($translate1), stripslashes($data['total']))) . "</h4>" 
+                . html_entity_decode(sprintf(stripslashes($translate2), stripslashes($data['refpages']))) 
+                . "</div><div class='clearfix col factor-special'>"; // trick div
 
         $domain = $report->url;
-
-        return $top . '</div><div class="clearfix col factor-special">' // trick div
+        
+        
+        return $top 
                 . '<div class="row" id="backlinkscharts">' . $out . '</div>'
-                . '<div id="backlinkspie" class="row">' . $charts . '</div>'
-                . '<div class="poweredbyout" onclick="window.open(\'https://ahrefs.com/site-explorer/overview/subdomains?target=' . urlencode($domain) . '\')"  style="display:block;text-align:center;" > <span >Check deep link analysis on ahrefs</span><br /><img src="' . self::$imgfolder . 'ahrefs_logoSmall.png" alt="ahrefs"></div>';
+                . '<div id="backlinkspie" class="row">' . $charts . '</div><!-- #backlinkspie -->'
+                . '<div class="poweredbyout" onclick="window.open(\'https://ahrefs.com/site-explorer/overview/subdomains?target=' . urlencode($domain) . '\')"  style="display:block;text-align:center;" > '
+                . '<span>Check deep link analysis on ahrefs</span><br /><img src="' . self::$imgfolder . 'ahrefs_logoSmall.png" alt="ahrefs">'
+                . '</div>';
     }
 
-    public static function guiAnchorstext($endModel, $data, $report) {
-
-        $count = count($data['anchors']);
+    public static function guiAnchorstext($endModel, $data, $report, $factor) {      
 
         $html = "";
-
+        $count = 0;
         $attr = '';
-
+        $displayAtNull = '';
         if (!empty($data['anchors'])) {
+             $count = count($data['anchors']);
             foreach ($data['anchors'] as $key => $value) {
                 $attr .= "data-anchor-" . $key . "='" . $value['anchor'] . "' data-backlinks-" . $key . "='" . $value['backlinks'] . "' ";
             }
+        }else{
+            $displayAtNull .= self::translate("cannotfindanchors", $factor);
+            $_SESSION['nullDisplay'] = "nullDisplay"; 
         }
-
-        return $html . "<div class='anchorschart' data-chartready='false' data-totali=" . $count . " " . $attr . "></div>";
+        
+        if(isset($_SESSION['nullDisplay']) && $_SESSION['nullDisplay'] === "nullDisplay"){
+            return $html . "<div class='clearfix row noselect anchorsconstruct'><div class='anchorschart col-xs-12 col-sm-12' id='anchorschart' data-chartready='false' data-totali=" . $count . " " . $attr . ">". $displayAtNull ."</div></div>";
+        }
+        
+        //close factor-data div
+        return $html . "</div>"
+                        . "<div class='clearfix row noselect anchorsconstruct'>"
+                            . "<div class='anchorschart col-xs-12 col-sm-12' data-chartready='false' data-totali=" . $count . " " . $attr . " id='anchorschart'>"
+                                . $displayAtNull 
+                            . "</div><!-- #anchorschart -->"
+                    . "</div>";
     }
 
-    public static function guiMobileusability($endModel, $data, $report) {
+    public static function guiMobileusability($endModel, $data, $report, $factor) {
         $totalFail = 0;
         $totalWarn = 0;
         $html = '';
@@ -1378,14 +2114,21 @@ class eRankerCommons {
         return $endModel;
     }
 
-    public static function guiOngooglemaps($endModel, $data, $report) {
+    public static function guiOngooglemaps($endModel, $data, $report, $factor) {
         $html = "";
+        
         if (!empty($data)) {
             $html .= "<div class='external-onmaps' >";
-            if (isset($data['latitude']) && isset($data['longitude']) && !isset($_GET['pdf']) && empty($_GET['pdf'])) {
-                $html .= "<div style='height: 250px;' id='map-googlemaps' data-gmapsmapready='false' data-googlemaps-latitude='" . $data['latitude'] . "' data-googlemaps-longitude='" . $data['longitude'] . "' data-googlemaps-accuracy='' data-googlemaps-title='" . $data['name'] . "' >";
+            if (isset($data['latitude']) && isset($data['longitude'])) {
+                if (isset($_GET['pdf'])) {
+                    $html .= '<img src="https://maps.googleapis.com/maps/api/staticmap?zoom=15&size=950x250&maptype=roadmap'
+                            . '&markers=color:red%7Clabel:G%7C' . $data['latitude'] . ',' . $data['longitude'] . '" id="map-googlemaps" width="100%">';
+                } else {
+                    $html .= "<div style='height: 250px;width:100%' id='map-googlemaps' data-gmapsmapready='false' data-googlemaps-latitude='" 
+                            . $data['latitude'] . "' data-googlemaps-longitude='" . $data['longitude'] 
+                            . "' data-googlemaps-accuracy='' data-googlemaps-title='" . $data['name'] . "' ></div>";
+                }
                 //$html .= "<h5 style='margin-bottom: 0;'><strong>" . ucfirst($data['name']) . "</strong></h5>";
-                $html .= "</div>";
             }
 
             if (isset($data['photo']) && !empty($data['photo'])) {
@@ -1397,26 +2140,39 @@ class eRankerCommons {
             if (isset($data['place_url']) && !empty($data['place_url'])) {
                 $onclick = "onclick='window.open(\"" . $data['place_url'] . "\")'";
             } else {
-                $onclick = "";
+                $onclick = "onclick='window.open(\"" . $data['website'] . "\")'";;
             }
             $html .= "<div $onclick style='cursor:pointer; position:relative; border-bottom: 1px solid #EEE;  background-color: #DA4336; color: white; padding: 5px; font-family: arial,sans-serif-light,sans-serif; font-size: 20px;'>"
                     . $htmlphoto . $data['name'] .
                     "</div>";
 
-            $html .= "<div class='footer-map-onmaps'>";
-
-            $html .= "<span><strong>Address:</strong> " . $data['address'] . "</span><br/>";
+            $html .= "<div class='footer-map-onmaps row'>";
+            if (isset($data['address']) && !empty($data['address'])) {
+                $html .= "<div class='col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft'><strong>" . self::translate('address', $factor) . ":</strong></div>"
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['address'] . "<br/></div>";
+            }
+            
+            //i'm not sure if is phones
             if (isset($data['phones']) && !empty($data['phones'])) {
                 foreach ($data['phones'] as $value) {
-                    $html .= '<span><strong>Phone:</strong> <img title="Phone" src="' . self::$factorCreateImageFolder . 'createimage.php?size=11&amp;transparent=1&amp;padding=0&amp;bgcolor=250&amp;textcolor=50&amp;text=' . urlencode(strrev(base64_encode($value))) . '" alt="Phone Number"> <br /></span>';
+                    $html .= '<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft"><strong>' . self::translate("phone", $factor) . ':</strong></div>'
+                            .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft"><img title="Phone" src="' . self::$factorCreateImageFolder . 'createimage.php?size=11&amp;transparent=1&amp;padding=0&amp;bgcolor=250&amp;textcolor=50&amp;text=' . urlencode(strrev(base64_encode($value))) . '" alt="Phone Number"> <br /></div>';
                 }
             }
-            if (isset($data['reviews'])) {
-                $html .= "<span><strong>Reviews:</strong> " . $data['reviews'] . "</span><br/>";
+            
+            if (isset($data['phone'])) {
+                $html .= "<div class='col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft'><strong>" . self::translate('phone', $factor) . ":</strong></div>" 
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft"><img title="Phone" src="' . self::$factorCreateImageFolder . 'createimage.php?size=11&amp;transparent=1&amp;padding=0&amp;bgcolor=250&amp;textcolor=50&amp;text=' . urlencode(strrev(base64_encode($data['phone']))) . '" alt="Phone Number"></br></div>';
             }
+            
+            if (isset($data['reviews'])) {
+                $html .= "<div class='col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft'><strong>" . self::translate('reviews', $factor) . ":</strong></div>" 
+                        .'<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft">'. $data['reviews'] . "<br/></div>";
+            }
+            
             if (isset($data['rating'])) {
-                $html .= "<span><strong>Rating:</strong> ";
-                $html .= "<span class='errankerreportficons-yellow'>";
+                $html .= "<div class='col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft'><strong>" . self::translate('rating', $factor) . ":</strong></div>";
+                $html .= "<div class='col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft'><span class='errankerreportficons-yellow'>";
                 if ($data['rating'] !== 0) {
                     $html .= '<span>' . round($data['rating'], 1) . '</span> ';
                 }
@@ -1427,13 +2183,26 @@ class eRankerCommons {
                         $html .= '<i class="fa fa-star-o"></i>';
                     }
                 }
-                $html .= "</span>";
-                $html .= "</span><br/>";
+                $html .= "</span><br/></div>";
             }
             if (isset($data['website'])) {
-                $html .= "<span><strong>WebSite:</strong> <a href='" . $data['website'] . "' rel='nofollow' TARGET='_blank'>" . $data['website'] . "</a></span><br/>";
+                $html .= "<div class='col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft'><strong>" . self::translate('website', $factor) . ":</strong></div>"
+                        . "<div class='col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft'><a href='" . $data['website'] . "' rel='nofollow' TARGET='_blank'>" . $data['website'] . "</a><br/></div>";
             }
-
+            if (isset($data['description'])) {
+                $html .= "<div class='col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft'><strong>" . self::translate('description', $factor) . ":</strong></div>"
+                    ."<div class='col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft'>". $data['description'] . "<br/></div>";
+            }
+            if (isset($data['industry'])) {
+                $html .= "<div class='col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft'><strong>" . self::translate('industry', $factor) . ":</strong></div>" 
+                    ."<div class='col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft'>". $data['industry'] . "<br/></div>";
+            }
+            
+            if (isset($data['opened'])) {
+                $html .= "<div class='col-xs-12 col-sm-2 col-md-2 col-lg-2 nopaddingleft'><strong>" . self::translate('opened', $factor) . ":</strong></div>" 
+                        ."<div class='col-xs-12 col-sm-10 col-md-10 col-lg-10 nopaddingleft'>". $data['opened'] . "<br/></div>";
+            }
+            
             $html .= "</div>";
             $html .= "</div>";
         } else {
@@ -1443,7 +2212,7 @@ class eRankerCommons {
         return $html;
     }
 
-    public static function guiServerlocation($endModel, $data, $report) {
+    public static function guiServerlocation($endModel, $data, $report, $factor) {
 
         $out = '';
 
@@ -1467,37 +2236,43 @@ class eRankerCommons {
         }
 
         if (!empty($ip)) {
-            $content .= "<strong>Server IP:</strong> " . $ip . "<br />";
+            $content .= "<strong>" . self::translate('serverip', $factor) . ":</strong> " . $ip . "<br />";
         }
         if (!empty($city)) {
-            $content .= "<strong>City:</strong> " . $city . "<br />";
+            $content .= "<strong>" . self::translate('city', $factor) . ":</strong> " . $city . "<br />";
         }
         if (!empty($state)) {
-            $content .= "<strong>State:</strong> " . $state . "<br />";
+            $content .= "<strong>" . self::translate('stateserverlocation', $factor) . ":</strong> " . $state . "<br />";
         }
         if (!empty($zip)) {
-            $content .= "<strong>ZIP Code:</strong> " . $zip . "<br />";
+            $content .= "<strong>" . self::translate('zipcode', $factor) . ":</strong> " . $zip . "<br />";
         }
         if (!empty($country_code)) {
-            $content .= "<strong>Country:</strong> <img src='" . self::$imgfolder . "/flags/24/$country_code.png' style='height: 16px;vertical-align: sub;' alt='$country_code' /> " . $country_name . "<br />";
+            $content .= "<strong>" . self::translate('countryserverlocatio', $factor) . ":</strong> <img src='" . self::$imgfolder . "/flags/24/$country_code.png' style='height: 16px;vertical-align: sub;' alt='$country_code' /> " . $country_name . "<br />";
         }
         if (!empty($timezone)) {
-            $content .= "<strong>TimeZone:</strong> " . $timezone;
+            $content .= "<strong>" . self::translate('timezone', $factor) . ":</strong> " . $timezone;
         }
-        if (!isset($_GET['pdf']) && empty($_GET['pdf'])) {
-            $idMap = "mapserverlocation";
+//        if (!isset($_GET['pdf']) && empty($_GET['pdf'])) {
+//            $idMap = "mapserverlocation";
+//        } else {
+//            $idMap = 'emptymap';
+//        }
+         if (isset($_GET['pdf'])) {
+            $out .= '<img src="https://maps.googleapis.com/maps/api/staticmap?zoom=9&size=950x450&maptype=roadmap'
+                    . '&markers=color:red%7Clabel:G%7C' . str_replace(",", ".", $latitude) . ',' . str_replace(",", ".", $longitude) . '" id="mapserverlocation">'
+                    . $content;
         } else {
-            $idMap = 'emptymap';
+            $out .= '<div id="mapserverlocation" data-mapready="false" style="height: 450px;width: 100%;" data-serverlocation-title="' . $host 
+                    . '" data-serverlocation-accuracy="' . $accuracy_radius . '" data-serverlocation-latitude="' . str_replace(",", ".", $latitude) 
+                    . '" data-serverlocation-longitude="' . str_replace(",", ".", $longitude) . '" >' . $content . '</div>';
         }
-        $out .= '<div id="' . $idMap . '" data-mapready="false" style="height: 450px" data-serverlocation-title="' . $host . '" data-serverlocation-accuracy="' . $accuracy_radius . '" data-serverlocation-latitude="' . str_replace(",", ".", $latitude) . '" data-serverlocation-longitude="' . str_replace(",", ".", $longitude) . '" >' . $content . '</div>';
 
-        return !empty($data) ? $out : 'Server Location not found';
+        return !empty($data) ? $out : self::translate('servernotfound', $factor);
     }
 
-    public static function guiGooglepreview($endModel, $data, $report) {
-
-        $outString = '';
-
+    public static function guiGooglepreview($endModel, $data, $report, $factor) {        
+        $outString = '';   
         if (isset($data) && !empty($data)) {
             foreach ($data as $key => $value) {
                 if (strcasecmp($key, 'title') === 0) {
@@ -1519,18 +2294,42 @@ class eRankerCommons {
             }
         }
 
-
-
-
         if (!empty($url_href) && !empty($title)) {
             $outString .= "<div class='outgooglepreview'>";
             $outString .= "<h3 class='title-googlepriview'>";
-            $outString .= "<a rel='nofollow' href='$url_href' target='_blank'> $title </a>";
+            $outString .= "<a rel='nofollow' href='". (eRankerCommons::fixURL($url_href) !== false ? eRankerCommons::fixURL($url_href) : "http://$url_href") ."' target='_blank'> $title </a>";
             $outString .= "</h3>";
             $outString .= "<div class='insidegooglepreview'>";
             $outString .= "<div class='url-googlepreview'>";
-            $outString .= "$url_href";
+            $outString .= "<a href='". (eRankerCommons::fixURL($url_href) !== false ? eRankerCommons::fixURL($url_href) : "http://$url_href") ."' target='_blank' style='cursor:pointer;color: #006621;'>". $url_href ."</a>";
             $outString .= "</div>";
+            if (!empty($meta_description)) {
+                $outString .= "<div class='description-googlepreview'>";
+                $outString .= "$meta_description";
+                $outString .= "</div>";
+            }
+            $outString .= "</div>";
+            $outString .= "</div>";
+        }else if((!empty($url_href) && empty($title)) || (empty($url_href) && !empty($title))){
+            //for some sites $data not contain title
+            //show partials data
+            $outString .= "<div class='announcement'>". self::translate('notcompletedata', $factor) ."</div>";            
+            $outString .= "<div class='outgooglepreview'>";
+            
+            if(!empty($url_href) && !empty($title)){
+                $outString .= "<h3 class='title-googlepriview'>";
+                $outString .= "<a rel='nofollow' href='". (eRankerCommons::fixURL($url_href) !== false ? eRankerCommons::fixURL($url_href) : "http://$url_href") ."' target='_blank'> $title </a>";
+                $outString .= "</h3>";
+            }
+            
+            $outString .= "<div class='insidegooglepreview'>";
+            
+            if(!empty($url_href)){
+                $outString .= "<div class='url-googlepreview'>";
+                $outString .= "<a href='". (eRankerCommons::fixURL($url_href) !== false ? eRankerCommons::fixURL($url_href) : "http://$url_href") ."' target='_blank' style='cursor:pointer;color: #006621;'>". $url_href ."</a>";
+                $outString .= "</div>";
+            }
+            
             if (!empty($meta_description)) {
                 $outString .= "<div class='description-googlepreview'>";
                 $outString .= "$meta_description";
@@ -1540,10 +2339,10 @@ class eRankerCommons {
             $outString .= "</div>";
         }
 
-        return !empty($outString) ? $outString : 'Not Found.';
+        return !empty($outString) ? $outString : self::translate('notfoundgoogleprevie', $factor);
     }
 
-    private static function helperResponsiveness($key, $data) {
+    private static function helperResponsiveness($key, $data, $factor) {
         $out = '';
         if (isset($data[$key]) && !empty($data[$key])) {
             if (isset($data[$key]['preview']) && !empty($data[$key]['preview'])) {
@@ -1552,7 +2351,7 @@ class eRankerCommons {
                 $icon = (isset($data[$key]['pass']) && $data[$key]['pass']) ? "fa-check" : "fa-times";
 
                 //var_dump($data[$key]['preview']);
-                $out .= "  <div class='responsivenesswrapper'>"
+                $out .= "  <div class='responsivenesswrapper col-xs-12 col-sm-12 col-md-6 col-lg-6'>"
                         . "     <div class='responsivenesstop responsiveness$key'>"
                         . "         <img src='" . $data[$key]['preview'] . "' alt='Website Preview: $key' />"
                         . "         <i class='fa $icon' style='background-color: $color'></i>"
@@ -1574,30 +2373,32 @@ class eRankerCommons {
         return $out;
     }
 
-    public static function guiResponsiveness($endModel, $data, $report) {
+    public static function guiResponsiveness($endModel, $data, $report, $factor) {
         if (empty($data)) {
-            return guiDefault($endModel, $data, $report);
+            return eRankerCommons::guiDefault($endModel, $data, $report, $factor);
         }
 
-        $out = '';
-        $out .= eRankerCommons::helperResponsiveness("phone", $data);
-        $out .= eRankerCommons::helperResponsiveness("tablet", $data);
-        $out .= eRankerCommons::helperResponsiveness("notebook", $data);
-        $out .= eRankerCommons::helperResponsiveness("desktop", $data);
+        $out = '</div><div class="responsivenessfactor clearfix row" style="margin-top: 10px;">';
+        $out .= eRankerCommons::helperResponsiveness("phone", $data, $factor);
+        $out .= eRankerCommons::helperResponsiveness("tablet", $data, $factor);
+        $out .= eRankerCommons::helperResponsiveness("notebook", $data, $factor);
+        $out .= eRankerCommons::helperResponsiveness("desktop", $data, $factor);
 
         if (empty($out)) {
-            return guiDefault($endModel, $data, $report);
+            return eRankerCommons::guiDefault($endModel, $data, $report, $factor);
         }
-
+        
+        $out .= '</div>';
+        
         return $out;
     }
 
-    public static function guiDuplicatecontent($endModel, $data, $report) {
+    public static function guiDuplicatecontent($endModel, $data, $report, $factor) {
 
         $outString = '';
         $urlsString = '';
         if (isset($data) && !empty($data)) {
-            $outString = 'We found <strong>' . count($data) . ' </strong> website contents that have blocks similar to their website to know the probability of similarity, click each of the listed links.<hr></hr>';
+            $outString = '' . self::translate("wefound", $factor) . ' <strong>' . count($data) . ' </strong> ' . self::translate("websitecontent", $factor) . '<hr></hr>';
             foreach ($data as $value) {
                 $title = $value;
                 if (!empty($title)) {
@@ -1607,40 +2408,101 @@ class eRankerCommons {
             $outString .= "<ul>$urlsString</ul>";
         }
 
-        return !empty($outString) ? $outString : 'We could not find any duplicate content at the time.';
+        return !empty($outString) ? $outString : self::translate('notfindcontent', $factor);
     }
 
-    public static function guiBuiltwithlist($endModel, $data, $report) {
-
-        $html = '<p>We found these technologies that build your website.Check each type and ranking of sites that use these technologies<p>';
-        $html .='<br /><div>';
+    public static function guitechnologies($endModel, $data, $report, $factor){
+        
+        //technologies
+        $technologies1 = array('Google Postini Services','Time Warner','Yahoo Web Analytics','Network Solutions DNS','Network Solutions SSL Wildcard','Adobe Dreamweaver',
+            'Google Adsense Asynchronous','Reg.ru DNS','qTranslate','Explorer Canvas','JBoss','ATInternet','Lunar Pages','Amazon Elastic Load Balancing','GlobalSign','Verizon DNS',
+            'Oracle Application Server','Symantec.cloud','Akamai DNS','Akamai SSL','jQuery Autocomplete','Joomla!','Level 3 Communications','Websense','ATT DNS','Comodo EliteSSL',
+            'GeoTrust QuickSSL Premium','Google App Engine','Hostway','Mailgun','Return Path','Proofpoint','Netscape Enterprise Server','Namecheap','Namecheap DNS','Linode','Adap.TV',
+            'Adblade','Add to Any','AddThis','Adobe ColdFusion','Adobe CQ','Adobe Dynamic Tag Management','Adobe Target Standard','Adobe','Adometry','AdRoll','Aggregate Knowledge',
+            'AJAX Libraries API','Akamai Edge','Akamai Hosted','Akamai','Alexa Certified Site Metrics','Alexa Metrics','Amazon Ad System','Amazon Associates','Amazon Elastic Beanstalk',
+            'Amazon Oregon Region','Amazon Route 53','Amazon S3','Amazon SES','Amazon Virginia Region','Amazon','Angular JS','Apache 2.2','Apache 2.4','Apache Tomcat Coyote','Apache',
+            'Apple Mobile Web App Capable','Apple Mobile Web App Status Bar Style','Apple Mobile Web Clips Icon','Apple Mobile Web Clips Startup','AppNexus Segment Pixel','AppNexus',
+            'ASP.NET','AT Internet','Atlas','aWeber','Backbone.js','BBC Glow','BIG-IP','Bing Conversion Tracking','Bing Universal Event Tracking','BloomReach','Blue Box Group','Blue State Digital',
+            'BlueKai','Bootstrap Sortable','Braintree Mail','Burst Media','Campaign Monitor','Canada Post','carouFredSel','Casale Media','CDN JS','Cedexis','Certona','Chango','ChannelAdvisor',
+            'Choopa','Classic ASP','CloudFlare DNS','CloudFlare Hosting','CloudFlare SSL','CloudFront','Commission Junction','Comodo Essential SSL WildCard','Comodo PositiveSSL Wildcard',
+            'Comodo PositiveSSL','Comodo SSL','comScore','Constant Contact','Contact Form 7','ContextWeb','Conversant','Convertro','CrazyEgg','Criteo','cufón','Datalogix','DataXu','Dedicated Media',
+            'Device Height','Device Width','Didit','Digg','DigiCert SSL','DNS Made Easy DNS','DNS Prefetch','DOSarrest','dotCMS','Dotomi','DoubleClick Floodlight','DoubleClick.Net',
+            'DoubleVerify','Dreamhost DNS','DreamHost Hosting','Drupal 7','Drupal Version 7.3x','Drupal','Dyn DNS','Dyn','Dynatrace','Efficient Frontier','Eloqua','Emarsys','EPiServer',
+            'Equal Heights','eranker','EssentialSSL','Everest Technologies','Evidon','ExactTarget Email','ExpressionEngine','Facebook Custom Audiences','Facebook Domain Insights','Facebook Exchange FBX',
+            'Facebook for Websites','Facebook Like Box','Facebook Like Button','Facebook Like','Facebook Page Administration','Facebook SDK','Facebook','Fancybox','FastClick','Fastly',
+            'FedEx','Fingerprint','Flashtalking','Flattr','FlexSlider','Font Awesome','ForeSee Results','Friends Network','GeoTrust QuickSSL','GeoTrust SSL','GetResponse','GitHub Hosting','GoDaddy DNS',
+            'GoDaddy Email','GoDaddy SSL','GoDaddy','Google Analytics Ecommerce','Google Analytics Multiple Trackers','Google Analytics','Google API','Google Apps for Business','Google Chrome IE Frame','Google Chrome Webstore Application',
+            'Google Conversion Tracking','Google DNS','Google Font API','Google Hosted jQuery UI'
+            );
+        
+        $technologies2 = array('Google Hosted jQuery','Google Hosted Libraries','Google JS Api','Google Maps API','Google Maps',
+            'Google Plus One Button','Google Plus One Platform','Google Plus One Publisher','Google Remarketing','Google SSL','Google Universal Analytics','Google Website Optimizer','Google','GSAP',
+            'Handheld Friendly','Hetzner','Highcharts','HostEurope DNS','Hostgator Mail','HREF Lang','HTML5 Boilerplate','html5shiv','Humans TXT','IBM HTTP Server','IE Pinning','IIS 6','IIS 7',
+            'IIS 8','IIS','Imgur','Impact Radius','Incapsula CDN','Incapsula','InsightExpress','Integral Ad Science','Intercom Mail','Internap','IPhone  Mobile Compatible','IponWeb BidSwitch','Isotope',
+            'J2EE','jQuery 1.3.2','jQuery CDN','jQuery Cookie','jQuery Cycle','jQuery Form','jQuery Mousewheel','jQuery prettyPhoto','jQuery UI','jQuery Watermark','jQuery','Kenshoo','KISSmetrics',
+            'KnockoutJS','Level3','Lijit Widget','LinkedIn Platform API','Liquid Web','LiteSpeed','Live Writer Support','Livestream','LocaWeb DNS','Locaweb Mail','Locaweb SSL','Lotame Crowd Control','MailChimp SPF',
+            'MailChimp','MailJet','Mandrill','matchMedia','Maxymiser','McAfee SaaS Email','MediaMind','Mediaplex','Message Bus','Microdata for Google Shopping','Microsoft Ajax Content Delivery Network','Microsoft Azure CDN',
+            'Microsoft Azure DNS','Microsoft Exchange Online','Microsoft Personal Web Server','Microsoft SharePoint Server 2013','Microsoft','MidPhase','Mixpanel','Moat','Mobify','Mobile Non Scaleable Content',
+            'Mobile Optimized','Modernizr','Moment JS','Monetate','Mustache','Netmining','Network Solutions Email Hosting','New Relic','nginx 1.1','nginx','Ning','NTT America','Omniture Adobe Test and Target',
+            'Omniture SiteCatalyst','One.com','OneAll','Open Graph Protocol','Openads OpenX','OpenSSL','Optimize Press','Orientation','OVH','OwnerIQ','Perl','PHP','Phusion Passenger','Pinterest',
+            'pjax','Post Affiliate Pro','PowWeb','Prototype','Pubmatic','Qualtrics Site Intercept','Quantcast Measurement','RapidSSL','Rapleaf','Really Simple Discovery','reCAPTCHA','Register.com DNS',
+            'RequireJS','Resolution','Retina JS','Rubicon Project','Ruby on Rails Token','Ruby on Rails','Safe Count','Salesforce SPF','Satellite','Savvis','script.aculo.us','Search Everything','Sendgrid','Shareaholic',
+            'ShareASale','ShareThis','Shockwave Flash Embed','ShopTab','Sidecar','Sitelinks Search Box','Smart App Banner','SPF','Spotify Play Button','SpotXchange','Starfield Technologies','StatCounter',
+            'Symantec VeriSign','TeaLeaf','Tealium','Thawte Seal','Thawte SSL Certificate','Thawte SSL','The Trade Desk','TownNews.com','TRUSTe','Trustwave Seal','Trustwave SSL','Tumblr Buttons','Turn','Twemoji',
+            'Twenty Twelve','Twitter Bootstrap','Twitter Cards','Twitter Follow Button','Twitter Platform','Twitter Timeline','Typekit','Ubuntu','UltraDNS neustar','UPS','USPS','Varnish','VideoJS','Viewport Meta','Vimeo',
+            'VINDICO','Visual Revenue','VoiceFive','W3 Total Cache','WebTrends','Windows 8 Pinning','Wistia','WordPress 4.0','Wordpress 4.2','Wordpress Daily Activity','WordPress DNS','Wordpress Monthly Activity','Wordpress SSL',
+            'WordPress Weekly Activity','WordPress','World Now','WP Retina 2x','X-Frame-Options','XiTi','X-UA-Compatible','X-XSS-Protection','Yahoo Buzz','Yahoo Dot','Yahoo Image CDN','Yahoo Small Business','Yahoo User Interface','Yahoo',
+            'yepnope','Yield Manager','Yoast Plugins','Yoast WordPress SEO Plugin','YouTube','YUI3','Zendesk','ZeroClipboard','Zerolag'
+            );
+        //all technologies with image in technologies folder
+        
+        $html  = '<p>' . self::translate("foundtechnologies", $factor) . '</p>';
+        $html .='<br />'
+            . '<div class="row">';
+        
         if (!empty($data)) {
             foreach ($data as $singleTec) {
-                $html .='<label title="" class="labeltec">  ' . $singleTec . '</label>';
+                $imglink = '';
+
+                if(in_array($singleTec, $technologies1) || in_array($singleTec, $technologies2)){
+                    $imglink .= $singleTec.'.png';
+                }else{
+                    $imglink .= 'eranker.png';
+                }
+
+                $tagimg = '';
+                
+                if (!empty($imglink)) {
+                    $tagimg .= '<img src="'. self::$imgfolder . 'technologies/' . $imglink . '"  height="24" width="24">';
+                }
+
+                $html .='<div class=" col-xs-12 col-sm-6 col-md-4 col-lg-4 nopaddingleft paddingupdown"> ' . $tagimg . ' ' . $singleTec . '</div>';
+                
+                $tagimg = '';
             }
+        }else{
+            $html .= '<div class=" col-xs-12 col-sm-12 col-md-12 col-lg-12 nopaddingleft"> ' . $endModel . '</div>';
         }
 
-        $html .='</div>';
-        return !empty($html) ? $html : 'Not Found.';
+        $html .= '</div>';
+        
+        return !empty($html) ? $html : self::translate('notfoundduplicatecontent', $factor);    
     }
 
-    public static function guiSslcheck($endModel, $data, $report) {
+    public static function guiSslcheck($endModel, $data, $report, $factor) {
         $html = "";
-
-        if (!empty($data['trusted'])) {
-            if ($data['trusted']) {
-                $html .= "<h4><i class='fa fa-check green'></i> Valid SSL Certificate</h4>";
-            } else {
-
-                $html .= "<h4><i class='fa fa-times missing'></i> Invalid SSL Certificate</h4>";
-                $html .= "<span>" . $data['return_error'] . "<span>";
-            }
-        }
+        
+        if((!empty($data['trusted']) && $data['trusted']) || $data['return_error'] === "ok") {
+            $html .= "<h4><i class='fa fa-check green'></i> " . self::translate('validssl', $factor) . "</h4>";
+        }else if($data != null && $data['return_error'] !== "ok"){
+            $html .= "<h4><i class='fa fa-times missing'></i> " . self::translate('missingssl', $factor) . "</h4>";
+            $html .= "<span>" . $data['return_error'] . "<span>";
+        }        
 
         if (isset($data['common_name']) && !empty($data['common_name'])) {
             $html .= "<div class='row external-sslcheck'>";
             $html .= "<div class='col-md-6'>";
-            $html .= "<span><strong>Common Name</strong></span>";
+            $html .= "<span><strong>" . self::translate('commonname', $factor) . "</strong></span>";
             $html .= "</div>";
             $html .= "<div class='col-md-6'>";
             $html .= "<span>" . $data['common_name'] . "</span>";
@@ -1650,7 +2512,7 @@ class eRankerCommons {
         if (isset($data['organizational_unit']) && !empty($data['organizational_unit'])) {
             $html .= "<div class='row external-sslcheck'>";
             $html .= "<div class='col-md-6'>";
-            $html .= "<span><strong>Organizational</strong></span>";
+            $html .= "<span><strong>" . self::translate('organizational', $factor) . "</strong></span>";
             $html .= "</div>";
             $html .= "<div class='col-md-6'>";
             $html .= "<span>" . $data['organizational_unit'] . "</span>";
@@ -1660,7 +2522,7 @@ class eRankerCommons {
         if (isset($data['country']) && !empty($data['country'])) {
             $html .= "<div class='row external-sslcheck'>";
             $html .= "<div class='col-md-6'>";
-            $html .= "<span><strong>Country</strong></span>";
+            $html .= "<span><strong>" . self::translate('countrysslcheck', $factor) . "</strong></span>";
             $html .= "</div>";
             $html .= "<div class='col-md-6'>";
             $html .= "<span>" . $data['country'] . "</span>";
@@ -1670,7 +2532,7 @@ class eRankerCommons {
         if (isset($data['state']) && !empty($data['state'])) {
             $html .= "<div class='row external-sslcheck'>";
             $html .= "<div class='col-md-6'>";
-            $html .= "<span><strong>State</strong></span>";
+            $html .= "<span><strong>" . self::translate('statesslcheck', $factor) . "</strong></span>";
             $html .= "</div>";
             $html .= "<div class='col-md-6'>";
             $html .= "<span>" . $data['state'] . "</span>";
@@ -1680,7 +2542,7 @@ class eRankerCommons {
         if (isset($data['locality']) && !empty($data['locality'])) {
             $html .= "<div class='row external-sslcheck'>";
             $html .= "<div class='col-md-6'>";
-            $html .= "<span><strong>Locality</strong></span>";
+            $html .= "<span><strong>" . self::translate('locality', $factor) . "</strong></span>";
             $html .= "</div>";
             $html .= "<div class='col-md-6'>";
             $html .= "<span>" . $data['locality'] . "</span>";
@@ -1690,7 +2552,7 @@ class eRankerCommons {
         if (isset($data['issuer_name']) && !empty($data['issuer_name'])) {
             $html .= "<div class='row external-sslcheck'>";
             $html .= "<div class='col-md-6'>";
-            $html .= "<span><strong>Issuer Name</strong></span>";
+            $html .= "<span><strong>" . self::translate('issuername', $factor) . "</strong></span>";
             $html .= "</div>";
             $html .= "<div class='col-md-6'>";
             $html .= "<span>" . $data['issuer_name'] . "</span>";
@@ -1700,7 +2562,7 @@ class eRankerCommons {
         if (isset($data['issuer_url']) && !empty($data['issuer_url'])) {
             $html .= "<div class='row external-sslcheck'>";
             $html .= "<div class='col-md-6'>";
-            $html .= "<span><strong>Issuer Url</strong></span>";
+            $html .= "<span><strong>" . self::translate('issuerurl', $factor) . "</strong></span>";
             $html .= "</div>";
             $html .= "<div class='col-md-6'>";
             $html .= "<span>" . $data['issuer_url'] . "</span>";
@@ -1710,7 +2572,7 @@ class eRankerCommons {
         if (isset($data['key_strength']) && !empty($data['key_strength'])) {
             $html .= "<div class='row external-sslcheck'>";
             $html .= "<div class='col-md-6'>";
-            $html .= "<span><strong>Key Strength</strong></span>";
+            $html .= "<span><strong>" . self::translate('keystrength', $factor) . "</strong></span>";
             $html .= "</div>";
             $html .= "<div class='col-md-6'>";
             $html .= "<span>" . $data['key_strength'] . "</span>";
@@ -1720,44 +2582,48 @@ class eRankerCommons {
         if (isset($data['protocol']) && !empty($data['protocol'])) {
             $html .= "<div class='row external-sslcheck'>";
             $html .= "<div class='col-md-6'>";
-            $html .= "<span><strong>Protocol</strong></span>";
+            $html .= "<span><strong>" . self::translate('protocol', $factor) . "</strong></span>";
             $html .= "</div>";
             $html .= "<div class='col-md-6'>";
             $html .= "<span>" . $data['protocol'] . "</span>";
             $html .= "</div>";
             $html .= "</div>";
         }
-
+        
+        if($data === null){
+            $html .= "<h4><i class='fa fa-times missing'></i> " . self::translate('missingssl', $factor) . "</h4>";
+        }
+        
         return $html;
     }
 
-    public static function guiSpeedanalysis($model, $data, $report) {
+    public static function guiSpeedanalysis($model, $data, $report, $factor) {
         if (empty($data)) {
             return $model;
         }
         if (!isset($data['grades']) || empty($data['grades'])) {
-            return 'Speed Anlysis failed to run';
+            return self::translate('Speed Anlysis failed to run');
         }
         $factors_labels = array(
-            'numreq' => 'Make fewer HTTP Requests',
-            'expires' => 'Add Expires headers',
-            'jsbottom' => 'Put JavaScript at bottom',
-            'xhr' => 'Make AJAX cacheable',
-            'compress' => 'Compress components with gzip',
-            'favicon' => 'Make favicon small and cacheable',
-            'csstop' => 'Put CSS at top',
-            'dns' => 'Reduce DNS lookups',
-            'mindom' => 'Reduce the number of DOM elements',
-            'cdn' => 'Use a Content Delivery Network (CDN)',
-            'cookiefree' => 'Use cookie-free domains',
-            'emptysrc' => 'Avoid empty src or href',
-            'imgnoscale' => 'Do not scale images in HTML',
-            'redirects' => 'Avoid URL redirects',
-            'dupes' => 'Remove duplicate JavasScript and CSS',
-            'no404' => 'Avoid HTTP 404 (Not Found) error',
-            'xhrmethod' => 'Use GET for AJAX requests',
-            'mincookie' => 'Reduce cookie size',
-            'etags' => 'Configure entity tags (ETags)',
+            'numreq' => self::translate('numreq', $factor),
+            'expires' => self::translate('expires', $factor),
+            'jsbottom' => self::translate('jsbottom', $factor),
+            'xhr' => self::translate('xhr', $factor),
+            'compress' => self::translate('compress', $factor),
+            'favicon' => self::translate('favicon', $factor),
+            'csstop' => self::translate('csstop', $factor),
+            'dns' => self::translate('dns', $factor),
+            'mindom' => self::translate('mindom', $factor),
+            'cdn' => self::translate('cdn', $factor),
+            'cookiefree' => self::translate('cookiefree', $factor),
+            'emptysrc' => self::translate('emptysrc', $factor),
+            'imgnoscale' => self::translate('imgnoscale', $factor),
+            'redirects' => self::translate('redirects', $factor),
+            'dupes' => self::translate('dupes', $factor),
+            'no404' => self::translate('no404', $factor),
+            'xhrmethod' => self::translate('xhrmethod', $factor),
+            'mincookie' => self::translate('mincookie', $factor),
+            'etags' => self::translate('etags', $factor),
         );
 
 
@@ -1770,14 +2636,16 @@ class eRankerCommons {
             'redirect' => 'Redirect'
         );
 
-
+        //style='width: 50%; height: 300px;margin: 0 auto; float: left;'
         $html = "
-            <h4 class='marginbottom0'>Overall performance score: <b>" . $data['score'] . "</b> out of 100</h4>
-            <p>The page has a total of <b>" . $data['requests'] . "</b> HTTP requests and a total weight of <b>" . round($data['size'] / 1024) . "Kb</b> with empty cache</p>
+            
+            <h4 class='marginbottom0'>" . self::translate('overallscore', $factor) . ": <b>" . $data['score'] . "</b> " . self::translate('outof', $factor) . " 100</h4>
+            <p>" . self::translate('pagetotalof', $factor) . " <b>" . $data['requests'] . "</b> " . self::translate('httprequest', $factor) . " <b>" . round($data['size'] / 1024) . "Kb</b> " . self::translate('withemptycache', $factor) . "</p>
 
-
-            <div id='speedanalysispiechartsrequest' data-chartready='false' style='width: 50%; height: 300px;margin: 0 auto; float: left;'></div>
-            <div id='speedanalysispiechartsweight' data-chartready='false' style='width: 50%; height: 300px;margin: 0 auto;  float: left;'></div>
+            <div class='row' id='speedanalysispiegroup'>
+                <div id='speedanalysispiechartsrequest' class='col-xs-12 col-sm-12 col-md-6 col-lg-6 nopaddingleft' data-chartready='false'></div>
+                <div id='speedanalysispiechartsweight' class='col-xs-12 col-sm-12 col-md-6 col-lg-6 nopaddingleft' data-chartready='false'></div>
+            </div><!-- #speedanalysispiegroup -->
             
             <script type='text/javascript'>
 
@@ -1961,6 +2829,179 @@ class eRankerCommons {
                     . '</div>';
         }
         return $html;
+    }
+
+    public static function guiHtmlvalidity($endModel, $data, $report, $factor) {
+        $out = '<div class="row">';
+        
+        if (!empty($data)) {
+            if (!empty($data['error'])) {
+                $out .= '<div class="col-xs-12 col-sm-3 col-md-1 col-lg-2 nopaddingleft">'.html_entity_decode(self::translate("error_text", $factor)).'</div>'
+                        .'<div class="col-xs-12 col-sm-9 col-md-11 col-lg-10 nopaddingleft">'. $data['error'] . '<br /></div>';
+            }
+            
+            if (!empty($data['warning'])) {
+                $out .= '<div class="col-xs-12 col-sm-3 col-md-1 col-lg-2 nopaddingleft">'.html_entity_decode(self::translate("warning_text", $factor)).'</div>'
+                        .'<div class="col-xs-12 col-sm-9 col-md-11 col-lg-10 nopaddingleft">'. $data['warning'] . '<br /></div>';
+            }
+            
+            if (!empty($data['info'])) {
+                $out .= '<div class="col-xs-12 col-sm-3 col-md-1 col-lg-2 nopaddingleft">'.html_entity_decode(self::translate("info_text", $factor)).'</div>'
+                        .'<div class="col-xs-12 col-sm-9 col-md-11 col-lg-10 nopaddingleft">'. $data['info'] . '<br /></div>';
+            }
+            
+            if (!empty($data['url'])) {
+                $z = stripslashes(html_entity_decode(str_replace('%link_text', eRankerCommons::fixURL($data['url']) != false ? eRankerCommons::fixURL($data['url']) : $data['url'], self::translate("link_text", $factor))));
+                $q = explode('<a href',$z);
+                $a1 = $q[0];
+                $a2 = isset($q[1]) ? '<a href' . $q[1] : '';
+//                $out .= '<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 nopaddingleft">'
+//                            .stripslashes(html_entity_decode(str_replace('%link_text', eRankerCommons::fixURL($data['url']) != false ? eRankerCommons::fixURL($data['url']) : $data['url'], self::translate("link_text", $factor))))
+//                        .'</div>';
+                $out .= '<div class="col-xs-12 col-sm-3 col-md-1 col-lg-2 nopaddingleft">'. $a1 .'</div>'
+                        .'<div class="col-xs-12 col-sm-9 col-md-11 col-lg-10 nopaddingleft">'. $a2 . '</div>';
+            }
+        }
+        
+        $out .= '</div>'; 
+
+        return (!empty($data)) ? $out : $endModel;
+    }
+
+    public static function guiSitemap($endModel, $data, $report, $factor) {
+        $out = '';
+
+        if (!empty($data)) {
+            if ($data['status']) {
+                if(!isset($_COOKIE['detectedLanguage']) || (isset($_COOKIE['detectedLanguage']) && $_COOKIE['detectedLanguage'] === "en")){
+                    $out .= self::translate("model_green", $factor).'<br /><br />';
+                }else if(isset($_COOKIE['detectedLanguage']) && $_COOKIE['detectedLanguage'] !== "en"){
+                    $out .= '<span>'.(is_null($endModel) ? $data['status'] : $endModel).'</span><br /><br />';
+                }else{
+                    $out .= '<span>'.(is_null($endModel) ? $data['status'] : $endModel).'</span><br /><br />';
+                }                
+
+                $out .= '<div class="trickydiv"><ul class="sitemaptoggle sitemaptoggledown">';
+                
+                $count = 0;
+                
+                foreach ($data['sitemap'] as $value) {
+                    $count ++; 
+                    
+                    if($count == 5){                        
+                        $out .= '<li class="lastnotoggle">';
+                    }else{                        
+                        $out .= '<li>';
+                    }
+                    
+                    $out .= '<a href="'. (eRankerCommons::fixURL($value) !== false ? eRankerCommons::fixURL($value) : $value) .'" target="_blank">'.$value.'</a>';
+                    $out .= '</li>';
+                }
+                
+                $out .= '</ul></div>';              
+
+                if($count > 5){
+                    $out .= '<a class="showmoresitemap" href="javascript:void(0);" onclick="if(jQuery(\'.sitemaptoggle\').hasClass(\'sitemaptoggledown\')){sitemapToggle(\' Show less\');}else if(jQuery(\'.sitemaptoggle\').hasClass(\'sitemaptoggleup\')){sitemapToggle(\' Show more\')}">'
+                            . 'Show more</a>';
+                }                
+            } else {                
+                $out .= self::translate("model_neutral", $factor);                
+            }
+        }else{
+            $out .= self::translate("model_red", $factor);            
+        }       
+
+        return $out;
+    }
+
+    public static function guiImgemptyalt($endModel, $data, $report, $factor) {
+        $out = '';
+        if (!empty($data)) {
+
+            if (!empty($data['total'])) {               
+                $out .= '<div>'. str_replace('%total', $data['total'], eRankerCommons::translate("model_orange", $factor)) .'</div>';
+                
+                $url_href = '';
+                foreach($data['image'] as $value){
+                    if(strpos($value,"://")){
+                        $domain = explode('/',$value);
+                        $url_href .= $domain[2];
+                        break;
+                    }
+                }
+                
+                if($url_href === ''){
+                    $url_href = $report->url;
+                }
+                
+                $out .= '<div class="trickydiv"><ul style="text-overflow: ellipsis;white-space: nowrap; max-width: 90%;" class="imgalttoggle imgalttoggledown">';
+
+                if (!empty($data['image'])) {
+                    $count = 0;
+                    foreach ($data['image'] as $value) {
+                        $count ++;                        
+                        if($count == 5){
+                            $out .= '<li class="lastnotoggle">';
+                        }else{
+                            $out .= '<li>';
+                        }
+                        
+                        if(strpos($value,"://") === false){                            
+                            $url_href = rtrim($url_href,'/');
+                            $value = ltrim($value,'/');
+                            $url = $url_href. '/' .$value;                           
+                        }else{
+                            $url = $value;
+                        }  
+                        
+                        $out .= '<a href="' . (eRankerCommons::fixURL($url) !== false ? eRankerCommons::fixURL($url) : $url) . '" target="_blank">' . $value . '</a>';
+                        $out .= '</li>';
+                    }
+                }
+
+                $out .= '</ul></div>';   
+                                
+                if($count > 5){
+                    $out .= '<a class="showmoreimgalt" href="javascript:void(0);" onclick="if(jQuery(\'.imgalttoggle\').hasClass(\'imgalttoggledown\')){imgAltToggle(\' Show less\');}else if(jQuery(\'.imgalttoggle\').hasClass(\'imgalttoggleup\')){imgAltToggle(\' Show more\')}">'
+                            . 'Show more</a>';
+                }                
+            } else {               
+                $out .= $endModel;               
+            }            
+        }
+
+        return ((!empty($out) && !isset($_COOKIE['detectedLanguage'])) || (isset($_COOKIE['detectedLanguage']) && $_COOKIE['detectedLanguage'] === "en")) ? $out : $endModel;
+
+    }
+
+    public static function guiCitations($endModel, $data, $report, $factor) {
+        $out = '';        
+        if (!empty($data)) {
+            if (!empty($data['citations'])) {
+                $out .= '<div>' . $endModel . '</div>';
+                if (!empty($data['link'])) {
+                    $out .= '<div style="text-overflow: ellipsis;white-space: nowrap;overflow: hidden; max-width: 90%;"><a href="' . $data['link'] . '" target="_blank">' . $data['link'] . '</a></div>';
+                }
+            } else {
+                $out = '<div>' . $endModel . '</div>';
+            }
+        }
+
+        return (!empty($out)) ? $out : $endModel;
+    }
+    
+    public static function guiUrl($endModel, $data, $report, $factor) {
+        $out = '';
+
+        if (!empty($data)) {
+
+            $out .= '<a href="' . $data . '" target="_blank">' . $data . '</a>';
+        } else {
+            $out = $endModel;
+        }
+
+
+        return $out;
     }
 
 }

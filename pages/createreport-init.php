@@ -52,7 +52,7 @@ if (isset($_REQUEST['sc_url'])) {
                 $seocheck_error = TRUE;
                 $seocheck_error_msg = $seocheck_report->msg . '<br/>' . $seocheck_reportobj->solution;
             } else {
-                header("Location: /index.php?p=report&id=" . $seocheck_reportobj->id);
+                header("Location: index.php?p=report&id=" . $seocheck_reportobj->id);
                 exit;
             }
         }
