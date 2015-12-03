@@ -4,11 +4,9 @@ var appendFlag = false;
 
 jQuery(document).ready(function () {
     // create an observer instance
-    var observer = new MutationObserver(function() {
-        $('.expandtable').click(function(){
-            clickExpandTable();
-            observer.disconnect();
-        });        
+    var observer = new MutationObserver(function() {        
+        clickExpandTable();
+        observer.disconnect();                
     });
     
     // pass in the target node, as well as the observer options
@@ -537,11 +535,11 @@ jQuery(document).ready(function () {
                     type: 'pie',
                     name: 'In Page Links',
                     showInLegend: false,
-                    data: [['External Follow',parseInt($('.chartinpagelinks').attr('data-external_follow'))],['External NoFollow',parseInt($('.chartinpagelinks').attr('data-external_nofollow'))],['Internal',parseInt($('.chartinpagelinks').attr('data-internal'))]]
+                    data: [['External Follow',parseInt($('.chartinpagelinks').attr('data-external_follow'))],['External NoFollow',parseInt($('.chartinpagelinks').attr('data-external_nofollow'))],['Internal',parseInt($('.chartinpagelinks').attr('data-internal'))],['Internal NoFollow',parseInt($('.chartinpagelinks').attr('data-internal_nofollow'))]]
                 }]
             });
 
-            jQuery('.chartinpagelinks').attr('data-chartready','true');
+            jQuery('.chartinpagelinks').attr('data-chartready','true');            
         }        
     }
 

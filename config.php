@@ -8,13 +8,13 @@ $eranker_apikey = "ee9978e1e5280ace6c0a3e99a77ea48c";
 require_once 'libs/eRankerAPI.class.php';
 require_once 'libs/eRankerCommons.php';
 
-eRankerCommons::$factorCreateImageFolder = "/libs/";
-eRankerCommons::$imgfolder = "/img/";
+eRankerCommons::$factorCreateImageFolder = "libs/";
+eRankerCommons::$imgfolder = "img/";
 
 //Some default variables (can be overwritten by pages init)
 $page_title = "Home";
 $page_desc = "This is a DEMO project that uses eRanker API. It contains some basic features like: Create Report; View and print Report; Generate PDF; Latest Reports";
-$project_name = "eRanker API Starter Kit";
+$project_name = "eRanker Factor Checker";
 
 //Init the eranker object and fill the user and factors data
 global $erapi;

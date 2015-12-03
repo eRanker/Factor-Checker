@@ -354,7 +354,7 @@
     width: 33%;
     height: 250px;
     float: left;
-    
+
 }
 @media (max-width: 900px) {
     #factor-backlinks .backlinkchartwrapper{
@@ -429,6 +429,7 @@
 
 #erreport .factor-name i.red, 
 #erreport .factor-name i.missing,
+#erreport .factor-data i.missing,
 #erreport .factors-score ul li.red,
 #erreport .redtext {
     color:#FE0000;
@@ -1233,13 +1234,17 @@
     width: 33%;
     font-weight: 600;
 }
-#erreport .external-sslcheck{
+
+#erreport .external-sslcheck, #erreport .external-http2check{
     border-bottom: 1px solid rgb(253, 157, 157);
 }
 
 .footer-map-onmaps{
     padding: 5px; 
 }
+
+
+
 .loadingCircleExternal{
     height: 150px;
     width: 150px;
@@ -1250,6 +1255,7 @@
     margin-right: auto;
     margin-bottom: -25px;
 }
+
 .loadingCircle:after {
     content: '';
     width: 150px;
@@ -1372,18 +1378,18 @@
 .imgbgrdgoogleplus, .imgbgrdfacebooksocial{
     width:100%;
     margin-top:5px;
-    
+
 }
 
 @media(max-width: 950px){
     .googleplusfactor{
         height: auto!important;
     }
-    
+
     .imgbgrdgoogleplus{
         height: auto!important;
     }
-    
+
 }
 
 .hiderows{

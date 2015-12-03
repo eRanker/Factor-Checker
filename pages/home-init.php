@@ -1,3 +1,3 @@
 <?php
 
-$page_title = "eRanker Starter Kit";
+$page_title = "eRanker Factor Checker";

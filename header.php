@@ -1,4 +1,13 @@
-<?php ?>
+<?php
+$allfactors = (array) $erapi_allfactors;
+$factor = '';
+if (isset($_GET['factor']) && !empty($_GET['factor'])) {
+    if (array_key_exists($_GET['factor'], $allfactors)) {
+        $factor = $allfactors[$_GET['factor']];
+    }
+}
+$pagename = isset($_GET['p']) && !empty($_GET['p']) ? $_GET['p'] : 'Home';
+?>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -7,6 +16,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="<?PHP echo $page_title . " - " . $project_name ?>">
         <title><?PHP echo $page_desc . " - " . $project_name ?></title>
+
 
         <!-- Theme CSS -->
         <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -51,9 +61,16 @@
                             <div class="col-xs-12">
                                 <div class="holder">
                                     <header class="head">
+                                        <?php if (isset($_GET['factor']) && strcasecmp($pagename, 'createreport') === 0) { ?>
+                                            <div class="row">
+                                                <div class="col-lg-12">
+                                                    <h1 class="page-header">Create Report - <?php echo $factor->text->friendly_name ?></h1>
+                                                </div>
+                                                <!-- /.col-lg-12 -->
+                                            </div>
+                                        <?php } ?>
 
-
-                                        <?PHP if (!empty($page_title)) { ?>                    
+                                        <?PHP if (!empty($page_title) && strcasecmp($pagename, 'createreport') !== 0) { ?>                    
                                             <div class="row">
                                                 <div class="col-lg-12">
                                                     <h1 class="page-header"><?PHP echo $page_title ?></h1>
@@ -65,9 +82,11 @@
                                         <?PHP } ?>
 
                                     </header>
-                                    <div class="block">
-                                        Factor descriptionaaaaa
-                                    </div>
+                                    <?php if (isset($_GET['factor']) && strcasecmp($pagename, 'createreport') === 0) { ?>
+                                        <div class="block">
+                                            <h4><?php echo $factor->category_friendly_name ?> </h4> 
+                                        </div>
+                                    <?php } ?>
                                 </div>
                             </div>
                         </div>

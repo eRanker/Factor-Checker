@@ -756,4 +756,12 @@ html.csstransforms .growl-item.ng-leave,
 html.csstransforms .growl-item.ng-enter.ng-enter-active {
     transform: translateX(0); }
 
-
+.intro {
+    display: block;
+    color: #1a1a1a;
+    font-size: 28px;
+    font-weight: 300;
+    line-height: 34px;
+    max-width: 86%;
+    margin: 0 auto;
+}
