@@ -1983,10 +1983,9 @@ class eRankerCommons {
         $translate1 = self::translate("totalbacklinks", $factor);
 
         $translate2 = self::translate("totalhefpage", $factor);
-        $totalBacklinks = (isset($data['total']) && !empty($data['total'])) ? $data['total'] :0 ;
-        $totalRefPages = (isset($data['refpages']) && !empty($data['refpages'])) ? $data['refpages'] :0 ;
-        $top = "<h4 class='marginbottom0'>" . html_entity_decode(sprintf(stripslashes($translate1), stripslashes($totalBacklinks))) . "</h4>"
-                . html_entity_decode(sprintf(stripslashes($translate2), stripslashes($totalRefPages)))
+
+        $top = "<h4 class='marginbottom0'>" . html_entity_decode(sprintf(stripslashes($translate1), stripslashes($data['total']))) . "</h4>"
+                . html_entity_decode(sprintf(stripslashes($translate2), stripslashes($data['refpages'])))
                 . "</div><div class='clearfix col factor-special'>"; // trick div
 
         $domain = $report->url;
