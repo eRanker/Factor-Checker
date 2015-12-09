@@ -16,7 +16,7 @@ if (isset($_GET['factor']) && !empty($_GET['factor'])) {
                     <form method="POST" action="">
                         <div class="field-row">
                             <div class="field">
-                                <input id="sc_url" type="url" placeholder="http://" name="sc_url" value="<?php echo (isset($_POST['sc_url']) ? htmlspecialchars($_POST['sc_url']) : ''); ?>">
+                                <input id="sc_url" type="text" placeholder="http://" name="sc_url" value="<?php echo (isset($_POST['sc_url']) ? htmlspecialchars($_POST['sc_url']) : ''); ?>">
                             </div>
                             <input type="hidden" name="factorsGroup[]" value="<?= (isset($_GET['factor']) && !empty($_GET['factor'])) ? $_GET['factor'] : '' ?>">
                             <input class="btn btn-default analyze-button" type="submit" value="Create the report">                            
