@@ -1,3 +1,3 @@
 <?php
 
-$page_title = "eRanker Factor Checker";
+$page_title = "Seo Factor Checker";
