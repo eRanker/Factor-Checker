@@ -2,24 +2,21 @@
 global $allfactors;
 
 
-$arrayGroup = array();
+$arrayCategory = array();
 
 foreach ($allfactors as $value) {
-    $arrayGroup[] = $value->group_friendly_name;
+    $arrayCategory[$value->category_icon] = $value->category_friendly_name;
 }
-$arrayGroup = array_filter(array_unique($arrayGroup));
+
+$arrayCategory = array_filter(array_unique($arrayCategory));
 ?>
 <div class="container" id="erreporthomepage">
-    <div class="row">
-        <div class="col-md-8 al-center">
-            <h1 class="head al-center">Some of our SEO Tools</h1>
-        </div><!-- end heading -->
-    </div>
-    <?php foreach ($arrayGroup as $value) { ?>
+    <?php foreach ($arrayCategory as $key => $value)        
+     { ?>
         <div class="group">
             <div class="row">
                 <div class="col-md-12 advertise leaderboard">
-                    <?php echo $value ?>
+                   <img src="<?php echo $key ?>" class="ercategoryicon" alt="{icon}" /> <?php echo $value ?>
                 </div>
             </div>
             <hr class="graded mobile-hide">
@@ -28,12 +25,12 @@ $arrayGroup = array_filter(array_unique($arrayGroup));
                 <?php
                 $countDivider = 0;
                 foreach ($allfactors as $factor) {
-                    if (strcasecmp($value, $factor->group_friendly_name) === 0) {
+                    if (strcasecmp($value, $factor->category_friendly_name) === 0) {
                         $countDivider++;
                         ?>
 
-                        <div  onclick="window.open('index.php?p=createreport&factor=<?php echo $factor->id ?>');
-                                return false;" class="col-md-3 intro-feature tool-showcase">
+                        <div onclick="window.location='index.php?p=createreport&factor=<?php echo $factor->id ?>';
+                                return false;" class="col-md-4 intro-feature tool-showcase">
 
                             <h3 class="smaller bold"><?php echo $factor->text->friendly_name ?> </h3>
                             <span class="icon price-tag2" aria-hidden="true">
@@ -94,20 +91,20 @@ $arrayGroup = array_filter(array_unique($arrayGroup));
                                 echo $out;
                                 ?>
                             </span>
-                            <p class="ellipsis-lines"><span><?php echo $factor->text->description_neutral ?></span></p>
+                            <?php echo stripslashes(html_entity_decode((isset($factor->text->description_neutral)) ? $factor->text->description_neutral  :'')) ?>
                         </div>
-            <?php if ($countDivider == 4) { ?>
+            <?php if ($countDivider == 3) { ?>
                             <hr class="clearfix graded mobile-hide">
 
                             <?php
                             $countDivider = 0;
                         }
                         ?>
-                    <?php
+                        <?php
                     }
                 }
                 ?>
-                <hr class="clearfix graded mobile-hide">
+                <hr class="clearfix graded mobile-hide" style="margin-bottom:20px">
             </div>
         </div>
 <?php } ?>

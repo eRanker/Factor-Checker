@@ -64,7 +64,7 @@ $pagename = isset($_GET['p']) && !empty($_GET['p']) ? $_GET['p'] : 'Home';
                                         <?php if (isset($_GET['factor']) && strcasecmp($pagename, 'createreport') === 0) { ?>
                                             <div class="row">
                                                 <div class="col-lg-12">
-                                                    <h1 class="page-header">Create Report - <?php echo $factor->text->friendly_name ?></h1>
+                                                    <h1 class="page-header"><?php echo $factor->text->friendly_name ?> Checker</h1>
                                                 </div>
                                                 <!-- /.col-lg-12 -->
                                             </div>
@@ -84,7 +84,12 @@ $pagename = isset($_GET['p']) && !empty($_GET['p']) ? $_GET['p'] : 'Home';
                                     </header>
                                     <?php if (isset($_GET['factor']) && strcasecmp($pagename, 'createreport') === 0) { ?>
                                         <div class="block">
-                                            <h4><?php echo $factor->category_friendly_name ?> </h4> 
+                                            <h4> <?php echo stripslashes(html_entity_decode((isset($factor->text->description_neutral)) ? $factor->text->description_neutral  :'')) ?> </h4> 
+                                        </div>
+                                    <?php } ?>
+                                    <?php if (strcasecmp($pagename, 'home') === 0) { ?>
+                                        <div class="block">
+                                            <h4>In search engine optimization, on-page optimization refers to factors that have an effect on your website or webpage listing in natural search results. These factors are controlled by you or by your page's code. Examples of on-page optimization include actual HTML code, meta tags, keyword placement and keyword density. </h4> 
                                         </div>
                                     <?php } ?>
                                 </div>

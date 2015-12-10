@@ -795,7 +795,7 @@ hr.graded {
     padding-bottom: 35px;
     font-size: 16px;
     line-height: 24px;
-/*    border-top: 1px solid #dedede;*/
+    /*    border-top: 1px solid #dedede;*/
     display: block;
 }
 
@@ -805,7 +805,7 @@ h3.smaller.bold {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-        margin-bottom: 2px;
+    margin-bottom: 2px;
 }
 
 .intro-feature h3 {
@@ -821,9 +821,9 @@ h3.smaller.bold {
     width: auto;
 }
 
-.intro-feature p.ellipsis-lines {
+/*.intro-feature p.ellipsis-lines {
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -831,19 +831,56 @@ h3.smaller.bold {
     margin: 0;
     font-family: "museo-sans",sans-serif;
 }
+.intro-feature p.ellipsis-lines:hover {
+    display: -webkit-box;
+     -webkit-line-clamp:15;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+    margin: 0;
+    font-family: "museo-sans",sans-serif;
+    transition: all 240ms ease;
+}
 
 .intro-feature p {
     margin: 0;
+    display: -webkit-box;
+     -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+}
+.intro-feature p:hover {
+    margin: 0;
+    display: -webkit-box;
+     -webkit-line-clamp: 15;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+    transition: all 240ms ease;
+}*/
+
+.intro-feature.tool-showcase:hover, .intro-feature.tool-showcase.active {
+    background: #f7f7f7;
+    display: -webkit-box;
+    -webkit-line-clamp: 15;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+    padding: 20px;
+}
+.intro-feature.tool-showcase, .intro-feature.tool-showcase {
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.4;
-}
-
-.intro-feature.tool-showcase:hover, .intro-feature.tool-showcase.active {
-    background: #f7f7f7;
+    padding: 4px;
 }
 hr {
     background: #dedede;
@@ -900,7 +937,7 @@ h1.page-header{
 }
 .advertise.leaderboard {
     margin-top: 20px;
-    font-size: 20px;
+    font-size: 23px;
     margin-bottom: 10px;
 }
 
@@ -935,10 +972,24 @@ h1.page-header{
     border-right: 1px solid #dedede;
 }
 
-.row .intro-feature.tool-showcase:nth-child(4) {
+.row .intro-feature.tool-showcase:nth-child(3),
+.row .intro-feature.tool-showcase:nth-child(7),
+.row .intro-feature.tool-showcase:nth-child(11),
+.row .intro-feature.tool-showcase:nth-child(15),
+.row .intro-feature.tool-showcase:nth-child(19),
+.row .intro-feature.tool-showcase:nth-child(23),
+.row .intro-feature.tool-showcase:nth-child(27),
+.row .intro-feature.tool-showcase:nth-child(31),
+.row .intro-feature.tool-showcase:nth-child(35),
+.row .intro-feature.tool-showcase:nth-child(39),
+.row .intro-feature.tool-showcase:nth-child(43),
+.row .intro-feature.tool-showcase:nth-child(47){
     border-right: none;
 }
-.row .intro-feature.tool-showcase:nth-child(9) {
+.row .intro-feature.tool-showcase:nth-child(7) {
+    border-right: none;
+}
+.row .intro-feature.tool-showcase:nth-child(11) {
     border-right: none;
 }
 
@@ -962,4 +1013,23 @@ h1.head {
 .al-center {
     text-align: center;
     padding: 15px 0;
+}
+#erreport h3{
+    color: #585f69;
+    margin-top: 5px;
+    text-shadow: none;
+    font-weight: normal;
+    font-family: 'Open Sans', sans-serif;
+}
+
+#erreport .factors-percent{
+    display: none;
+}
+
+.factors-score{
+    width: 66.66666667% !important;
+}
+
+.hiddenData{
+    display: none;
 }

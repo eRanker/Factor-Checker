@@ -1,6 +1,6 @@
 <?php
 
-$page_title = "";
+$page_title = "SEO Report";
 $page_desc = "SEO Report";
 
 $report_id = (isset($_REQUEST['id']) ? (int) $_REQUEST['id'] : '');

@@ -54,8 +54,4 @@ if (isset($_GET['factor']) && !empty($_GET['factor'])) {
         </div>
     </section>
 </main>
-<?php 
-echo "<pre>";
-var_dump($factor);
-echo "</pre>"
-?>
+

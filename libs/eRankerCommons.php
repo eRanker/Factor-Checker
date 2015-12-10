@@ -1196,7 +1196,7 @@ class eRankerCommons {
                     . '<div class="' . $classScores . ' col-lg-5 factors-score" style="' . $classResponsiveScores . '">' // factors score
                     . '<p>' . $translatedwords['reportforurl'] . ':</p>'
                     . '<h1>' . $report_url . '</h1>'
-                    . '<ul>'
+                    . '<ul class="hiddenData">'
                     . '<li class="col green"><i class="fa fa-check"></i><b class="factor-score">' . $translatedwords['successfullypased'] . '<span>' . $generalscore['factors']['green'] . '</span></b><div class="factorbar" style="width:' . ($generalscore['factors']['green'] * 100 / $score_raw_total) . '%"></div></li>'
                     . '<li class="col orange"><i class="fa fa-minus"></i><b class="factor-score">' . $translatedwords['roomforimprovement'] . '<span>' . $generalscore['factors']['orange'] . '</span></b><div class="factorbar" style="width:' . ($generalscore['factors']['orange'] * 100 / $score_raw_total) . '%"></div></li>'
                     . '<li class="col red"><i class="fa fa-times"></i><b class="factor-score">' . $translatedwords['errors'] . '<span>' . ( $generalscore['factors']['red'] + $generalscore['factors']['missing'] ) . '</span></b><div class="factorbar" style="width:' . ($generalscore['factors']['red'] * 100 / $score_raw_total) . '%"></div></li>'
